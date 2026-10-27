@@ -5,7 +5,19 @@ from email.header import decode_header, make_header
 from email.utils import parsedate_to_datetime
 import html
 
-AIRLINES = r"ryanair|easyjet|wizzair|vueling|volotea|transavia|lufthansa|ita-airways|itaairways|alitalia|airfrance|klm\.|britishairways|emirates|iberia|aegean|norwegian|flytap|turkishairlines|eurowings|aireuropa|airdolomiti|neos|blueair|jet2|flybe|tuifly|condor|swiss\.com|brusselsairlines|austrian|sas\.|finnair|aerlingus|qatarairways|etihad|airarabia|royalairmaroc|tunisair|egyptair|delta|united|americanairlines|jetblue|southwest|aircanada|singaporeair|cathaypacific|thaiairways|airasia|scoot|vistara|airindia|qantas|latam|avianca|copaair|logitravel|opodo|edreams|skyscanner|kiwi\.com|trip\.com|booking\.com|expedia|lastminute|momondo|checkfelix|volagratis|volagratis|trenitalia"
+# Sender substrings (case-insensitive) of airlines and travel agencies.
+AIRLINES = (
+    "ryanair", "easyjet", "wizzair", "vueling", "volotea", "transavia", "lufthansa", "ita-airways",
+    "itaairways", "alitalia", "airfrance", "klm.", "britishairways", "emirates", "iberia",
+    "aegean", "norwegian", "flytap", "turkishairlines", "eurowings", "aireuropa", "airdolomiti",
+    "neos", "blueair", "jet2", "flybe", "tuifly", "condor", "swiss.com", "brusselsairlines",
+    "austrian", "sas.", "finnair", "aerlingus", "qatarairways", "etihad", "airarabia",
+    "royalairmaroc", "tunisair", "egyptair", "delta", "united", "americanairlines", "jetblue",
+    "southwest", "aircanada", "singaporeair", "cathaypacific", "thaiairways", "airasia", "scoot",
+    "vistara", "airindia", "qantas", "latam", "avianca", "copaair", "logitravel", "opodo",
+    "edreams", "skyscanner", "kiwi.com", "trip.com", "booking.com", "expedia", "lastminute",
+    "momondo", "checkfelix", "volagratis", "trenitalia",
+)
 KEYWORDS = r"boarding pass|carta d.imbarco|e-?ticket|biglietto elettronico|itinerar|conferma (della )?prenotazione|booking confirmation|flight confirmation|your flight|il tuo volo|check-?in online|volo [A-Z]{2}\s?\d{2,4}|numero di prenotazione|reservation code"
 
 def dec(v):
@@ -29,7 +41,7 @@ with open(sys.argv[2], "w") as f:
     for m in mailbox.mbox(sys.argv[1]):
         n += 1
         frm, subj = dec(m["From"]), dec(m["Subject"])
-        if not (re.search(AIRLINES, frm, re.I) or re.search(KEYWORDS, subj, re.I)):
+        if not (any(a in frm.lower() for a in AIRLINES) or re.search(KEYWORDS, subj, re.I)):
             continue
         try: date = parsedate_to_datetime(m["Date"]).date().isoformat()
         except Exception: date = ""

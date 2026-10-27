@@ -7,7 +7,7 @@ import { airports, type Flight } from "@/lib/flights";
 const W = 960;
 const H = 500;
 
-export function WorldMap({ flights }: { flights: Flight[] }) {
+export function WorldMap({ flights }: Readonly<{ flights: Flight[] }>) {
   const topo = countriesTopo as unknown as Topology;
   const land = feature(topo, topo.objects.countries as GeometryCollection);
   const projection = geoNaturalEarth1().fitSize([W, H], { type: "Sphere" });
@@ -18,7 +18,7 @@ export function WorldMap({ flights }: { flights: Flight[] }) {
     const a = airports[f.from];
     const b = airports[f.to];
     if (!a || !b) continue;
-    routes.set([f.from, f.to].sort().join("-"), [
+    routes.set([f.from, f.to].sort((x, y) => x.localeCompare(y)).join("-"), [
       [a.lon, a.lat],
       [b.lon, b.lat],
     ]);
@@ -31,9 +31,9 @@ export function WorldMap({ flights }: { flights: Flight[] }) {
       {land.features.map((c, i) => (
         <path key={i} d={path(c) ?? ""} className="fill-slate-700 stroke-slate-900" strokeWidth={0.5} />
       ))}
-      {[...routes.values()].map((coordinates, i) => (
+      {[...routes].map(([route, coordinates]) => (
         <path
-          key={i}
+          key={route}
           d={path({ type: "LineString", coordinates }) ?? ""}
           className="fill-none stroke-amber-400"
           strokeWidth={1.2}
