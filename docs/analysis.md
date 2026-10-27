@@ -35,6 +35,5 @@ Decidere se partire dalla fase 1 usando come seed lo storico in `~/flights/`.
 - Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `~/flights/ryanair-bookings.md`.
 - Takeout account terziario: 989 messaggi (2015-2026), nessun volo. Script riusabile: `scripts/mbox-flights.py`.
 - Takeout account secondario (`~/flights/takeout/alessandro-1998/`): 16111 messaggi, 18 itinerari Ryanair 2019-2026. Aggiunte 12 tratte 2019-2024. Esclusi: XXXXXX (familiari), XXXXXX (altro passeggero), XXXXXX (cancellato COVID, sostituito da XXXXXX + XXXXXX), eDreams 2021 (carrelli abbandonati).
-- Inseriti a mano, da ricordo: BLQ-OLB-BLQ agosto 2015 (date 15/29 approssimate, Wizz Air da confermare). Mailbox account secondario parte da giugno 2017.
-- Air Arabia BGY-SHJ (Dubai): nessuna traccia nelle mail, data da chiedere.
+- Inseriti a mano, da ricordo (nessuna mail, la mailbox dell'account secondario parte da giugno 2017): BLQ-OLB-BLQ 10-24 ago 2015 (Wizz Air da confermare), BGY-SHJ-BGY Air Arabia 14-21 ott 2023.
 - `mbox-flights.py` tronca il body a 4000 caratteri: per Ryanair resta solo la parte text/plain, gli itinerari vanno letti dall'HTML.

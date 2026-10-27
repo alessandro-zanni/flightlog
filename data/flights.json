@@ -1,12 +1,12 @@
 [
  {
-  "date": "2015-08-15",
+  "date": "2015-08-10",
   "from": "BLQ",
   "to": "OLB",
   "airline": "Wizz Air"
  },
  {
-  "date": "2015-08-29",
+  "date": "2015-08-24",
   "from": "OLB",
   "to": "BLQ",
   "airline": "Wizz Air"
@@ -74,6 +74,18 @@
   "airline": "Ryanair",
   "flight": "FR7793",
   "pnr": "XXXXXX"
+ },
+ {
+  "date": "2023-10-14",
+  "from": "BGY",
+  "to": "SHJ",
+  "airline": "Air Arabia"
+ },
+ {
+  "date": "2023-10-21",
+  "from": "SHJ",
+  "to": "BGY",
+  "airline": "Air Arabia"
  },
  {
   "date": "2023-12-15",
