@@ -1,0 +1,32 @@
+# Flighty-like app: analisi (2026-10-27)
+
+## Cosa fa Flighty (da replicare)
+1. **Storico + statistiche**: lista voli, mappa, km, ore, compagnie, aeroporti, aerei (Passport).
+2. **Import**: inoltro mail di conferma (parsing), import da altre app.
+3. **Tracking live**: stato volo, ritardi, gate/terminal, aereo in arrivo ("dov'è il mio aereo"), alert push.
+4. **Integrazioni iOS**: Live Activities / Dynamic Island, widget, Wallet, Siri.
+5. **Social**: condivisione volo con amici.
+
+## Componenti e difficoltà
+| Parte | Come | Difficoltà | Costo |
+|---|---|---|---|
+| Storico + stats + mappa | Next.js + Supabase, MapLibre, dati aeroporti OurAirports (gratis) | bassa | 0 |
+| Import email | Gmail API (read-only) + estrazione LLM, o indirizzo di inoltro | media | pochi centesimi a mail |
+| Dati live voli | AeroAPI (FlightAware, a consumo), AeroDataBox, AirLabs; OpenSky per posizione (gratis, limitato) | media | uso personale: ~1-10 €/mese |
+| Alert ritardi/gate | cron/worker che interroga lo stato e confronta, poi push | media | incluso sopra |
+| Push su iPhone | web push (PWA) o APNs (serve app nativa) | media | 0 / 99 €/anno Apple Developer |
+| Live Activities, widget | solo app nativa SwiftUI + ActivityKit, aggiornate via APNs | alta | 99 €/anno |
+| Qualità dati (ritardi previsti, aereo in arrivo) | Flighty usa fonti proprietarie + ML: non replicabile al 100% | alta | n/a |
+
+## Rischi
+- La qualità dei dati live dipende dal provider: gate e ritardi precisi sono la parte costosa/imperfetta.
+- Live Activities impongono SwiftUI nativo, fuori dallo stack di default (Next.js).
+- Termini d'uso dei provider: uso personale ok, distribuzione pubblica cambia i costi.
+
+## Fasi proposte
+1. **MVP web (1-2 weekend)**: tabella voli, import da `~/flights/*.csv` (storico già in estrazione), mappa e statistiche. Stack di default (Next.js 16, Supabase, Tailwind, shadcn).
+2. **Import mail + tracking (2-3 weekend)**: Gmail read-only, estrazione LLM, worker su AeroAPI, alert via web push/Telegram.
+3. **App iOS nativa (opzionale, settimane)**: SwiftUI, Live Activities, widget, push APNs; riusa lo stesso backend.
+
+## Prossimo passo
+Decidere se partire dalla fase 1 usando come seed lo storico in `~/flights/`.
