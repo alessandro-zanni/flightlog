@@ -30,3 +30,8 @@
 
 ## Prossimo passo
 Decidere se partire dalla fase 1 usando come seed lo storico in `~/flights/`.
+
+## Dati storici: stato (2026-10-27)
+- Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `~/flights/ryanair-bookings.md`.
+- Takeout account terziario: 989 messaggi (2015-2026), nessun volo. Script riusabile: `scripts/mbox-flights.py`.
+- Takeout account secondario: in arrivo, da mettere in `~/flights/takeout/alessandro-1998/`.
