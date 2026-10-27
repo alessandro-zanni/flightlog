@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# sonarqube
+.scannerwork/
+
 # next.js
 /.next/
 /out/
