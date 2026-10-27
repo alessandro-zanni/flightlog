@@ -1,5 +1,17 @@
 [
  {
+  "date": "2015-08-15",
+  "from": "BLQ",
+  "to": "OLB",
+  "airline": "Wizz Air"
+ },
+ {
+  "date": "2015-08-29",
+  "from": "OLB",
+  "to": "BLQ",
+  "airline": "Wizz Air"
+ },
+ {
   "date": "2019-06-14",
   "from": "BLQ",
   "to": "BCN",
