@@ -1,9 +1,217 @@
 [
-  { "date": "2025-06-05", "from": "BLQ", "to": "CPH", "airline": "Ryanair", "flight": "FR2676", "pnr": "XXXXXX" },
-  { "date": "2025-06-09", "from": "CPH", "to": "BLQ", "airline": "Ryanair", "flight": "FR2677", "pnr": "XXXXXX" },
-  { "date": "2026-05-22", "from": "BLQ", "to": "MLA", "airline": "Ryanair", "flight": "FR3784", "pnr": "XXXXXX" },
-  { "date": "2026-05-25", "from": "MLA", "to": "BLQ", "airline": "Ryanair", "flight": "FR3779", "pnr": "XXXXXX" },
-  { "date": "2026-07-15", "from": "BLQ", "to": "BCN", "airline": "Ryanair", "flight": "FR2097", "pnr": "XXXXXX" },
-  { "date": "2026-09-15", "from": "BCN", "to": "AHO", "airline": "Ryanair", "flight": "FR8977", "pnr": "XXXXXX" },
-  { "date": "2026-09-29", "from": "BLQ", "to": "BCN", "airline": "Ryanair", "flight": "FR8184", "pnr": "XXXXXX" }
+ {
+  "date": "2024-05-23",
+  "from": "BLQ",
+  "to": "VLC",
+  "airline": "Ryanair",
+  "flight": "FR8702",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2024-05-25",
+  "from": "VLC",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR6422",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2024-09-13",
+  "from": "BGY",
+  "to": "DUB",
+  "airline": "Ryanair",
+  "flight": "FR4845",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2024-09-17",
+  "from": "DUB",
+  "to": "BGY",
+  "airline": "Ryanair",
+  "flight": "FR4844",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2024-11-15",
+  "from": "BLQ",
+  "to": "MLA",
+  "airline": "Ryanair",
+  "flight": "FR3778",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2024-11-17",
+  "from": "MLA",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR3779",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2024-12-10",
+  "from": "BGY",
+  "to": "RAK",
+  "airline": "Ryanair",
+  "flight": "FR3402",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2024-12-17",
+  "from": "FEZ",
+  "to": "BGY",
+  "airline": "Ryanair",
+  "flight": "FR3546",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-02-07",
+  "from": "BLQ",
+  "to": "CRL",
+  "airline": "Ryanair",
+  "flight": "FR4863",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-02-10",
+  "from": "CRL",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR4862",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-03-15",
+  "from": "TSF",
+  "to": "MLA",
+  "airline": "Ryanair",
+  "flight": "FR3870",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-03-17",
+  "from": "MLA",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR3779",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-05-08",
+  "from": "BLQ",
+  "to": "VLC",
+  "airline": "Ryanair",
+  "flight": "FR620",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-05-13",
+  "from": "VLC",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR619",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-06-05",
+  "from": "BLQ",
+  "to": "CPH",
+  "airline": "Ryanair",
+  "flight": "FR2676",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-06-09",
+  "from": "CPH",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR2677",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-08-17",
+  "from": "BLQ",
+  "to": "SDR",
+  "airline": "Ryanair",
+  "flight": "FR3924",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-11-27",
+  "from": "BLQ",
+  "to": "BCN",
+  "airline": "Ryanair",
+  "flight": "FR574",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-11-29",
+  "from": "BCN",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR2098",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-12-06",
+  "from": "BLQ",
+  "to": "MLA",
+  "airline": "Ryanair",
+  "flight": "FR3778",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2025-12-09",
+  "from": "MLA",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR3779",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2026-05-22",
+  "from": "BLQ",
+  "to": "MLA",
+  "airline": "Ryanair",
+  "flight": "FR3784",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2026-05-25",
+  "from": "MLA",
+  "to": "BLQ",
+  "airline": "Ryanair",
+  "flight": "FR3779",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2026-07-15",
+  "from": "BLQ",
+  "to": "BCN",
+  "airline": "Ryanair",
+  "flight": "FR2097",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2026-09-15",
+  "from": "BCN",
+  "to": "AHO",
+  "airline": "Ryanair",
+  "flight": "FR8977",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2026-09-29",
+  "from": "BLQ",
+  "to": "BCN",
+  "airline": "Ryanair",
+  "flight": "FR8184",
+  "pnr": "XXXXXX"
+ },
+ {
+  "date": "2026-07-11",
+  "from": "BCN",
+  "to": "BLQ",
+  "airline": "Vueling",
+  "pnr": "XXXXXX"
+ }
 ]
