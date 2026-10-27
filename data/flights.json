@@ -1,0 +1,9 @@
+[
+  { "date": "2025-06-05", "from": "BLQ", "to": "CPH", "airline": "Ryanair", "flight": "FR2676", "pnr": "XXXXXX" },
+  { "date": "2025-06-09", "from": "CPH", "to": "BLQ", "airline": "Ryanair", "flight": "FR2677", "pnr": "XXXXXX" },
+  { "date": "2026-05-22", "from": "BLQ", "to": "MLA", "airline": "Ryanair", "flight": "FR3784", "pnr": "XXXXXX" },
+  { "date": "2026-05-25", "from": "MLA", "to": "BLQ", "airline": "Ryanair", "flight": "FR3779", "pnr": "XXXXXX" },
+  { "date": "2026-07-15", "from": "BLQ", "to": "BCN", "airline": "Ryanair", "flight": "FR2097", "pnr": "XXXXXX" },
+  { "date": "2026-09-15", "from": "BCN", "to": "AHO", "airline": "Ryanair", "flight": "FR8977", "pnr": "XXXXXX" },
+  { "date": "2026-09-29", "from": "BLQ", "to": "BCN", "airline": "Ryanair", "flight": "FR8184", "pnr": "XXXXXX" }
+]
