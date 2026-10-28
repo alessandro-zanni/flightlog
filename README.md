@@ -39,6 +39,26 @@ Account dedicati (`azanni-flightlog` su Vercel, org "Flightlog" su Supabase), to
   `flightlog-login-staging`).
 - Password dei database nel Portachiavi (`supabase-db-flightlog`, `supabase-db-flightlog-staging`).
 
+## Import da mail
+
+Inoltra (a mano o con un filtro Gmail) le conferme di volo a `flights@alessandrozanni.dev`.
+
+1. Cloudflare Email Routing: regola `flights@` → Email Worker `flightlog-inbound` (`worker/`). Gli
+   altri indirizzi restano sul catch-all verso Gmail.
+2. Il Worker accetta solo i mittenti in `ALLOWED_FROM` (senza il `+tag` dell'inoltro automatico
+   Gmail), legge la mail con `postal-mime` e la manda a `POST /api/inbound` con `INBOUND_SECRET`.
+   La mail di conferma inoltro di Gmail passa a `FORWARD_TO`.
+3. `/api/inbound` chiede a Claude Haiku 5.5 le tratte in cui Alessandro è passeggero e le inserisce
+   (i doppioni vengono saltati). Costo: circa 0,001 $ a mail.
+4. Nessun volo trovato o errore → il Worker rifiuta la mail: arriva un bounce al mittente, nessuna
+   mail si perde in silenzio.
+
+- Deploy del Worker: `bun run worker:deploy` (token Cloudflare in `~/.zshrc`). Secret:
+  `wrangler secret put INBOUND_SECRET -c worker/wrangler.toml`, valore nel Portachiavi
+  (`flightlog-inbound-secret`), lo stesso che c'è su Vercel prod.
+- Su Vercel prod, oltre alle variabili Supabase: `INBOUND_SECRET`, `SUPABASE_SECRET_KEY`,
+  `ANTHROPIC_API_KEY`. Staging non riceve mail.
+
 ## Static analysis
 
 SonarQube in locale, istanza condivisa in `~/projects/sonarqube` (Docker, non in CI), project key
