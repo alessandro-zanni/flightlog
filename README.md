@@ -19,6 +19,22 @@ bun run dev
 Registrazione chiusa: l'unico utente si crea dall'API admin (`POST /auth/v1/admin/users` con la
 secret key, `email_confirm: true`). Dopo una migration: `bun run db:types`.
 
+## Deploy
+
+Account dedicati (`azanni-flightlog` su Vercel, org "Flightlog" su Supabase), token in `.envrc`
+(direnv, non committato).
+
+| Ramo      | Supabase (eu-central-1)                      | Vercel (fra1)                           |
+| --------- | -------------------------------------------- | --------------------------------------- |
+| `main`    | `flightlog` (`ttqhycpthnrvzjhcxysq`)         | `flightlog`                             |
+| `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | `flightlog-staging`, dietro login Vercel |
+
+- Push su `main`/`develop` → `.github/workflows/deploy.yml` (lint, typecheck, test, deploy). Unico
+  secret GitHub: `VERCEL_TOKEN`.
+- Migration: `supabase link --project-ref <ref>` + `supabase db push --linked`, prima su staging, poi
+  su prod, **prima** del push del codice che le usa. Poi advisor su entrambi.
+- Password dei database nel Portachiavi (`supabase-db-flightlog`, `supabase-db-flightlog-staging`).
+
 ## Static analysis
 
 SonarQube in locale, istanza condivisa in `~/projects/sonarqube` (Docker, non in CI), project key
