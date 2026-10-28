@@ -35,5 +35,8 @@ jobs:
       - run: bun run typecheck
       - run: bun run test
 
+      # Without .git the CLI sends no commit metadata: Vercel otherwise blocks
+      # deploys (TEAM_ACCESS_REQUIRED) whose commit author isn't a member of the
+      # dedicated account, as happened to staging on 2026-10-28.
       - name: Deploy
-        run: bunx vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
+        run: rm -rf .git && bunx vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
