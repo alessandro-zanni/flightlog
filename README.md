@@ -26,14 +26,15 @@ Account dedicati (`azanni-flightlog` su Vercel, org "Flightlog" su Supabase), to
 
 | Ramo      | Supabase (eu-central-1)                      | Vercel (fra1)                           |
 | --------- | -------------------------------------------- | --------------------------------------- |
-| `main`    | `flightlog` (`ttqhycpthnrvzjhcxysq`)         | `flightlog` → flightlog-taupe.vercel.app |
-| `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | `flightlog-staging`, dietro login Vercel |
+| `main`    | `flightlog` (`ttqhycpthnrvzjhcxysq`)         | `flightlog` → flightlog.alessandrozanni.dev |
+| `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | `flightlog-staging` → staging.flightlog.alessandrozanni.dev, dietro login Vercel |
 
 - Push su `main`/`develop` → `.github/workflows/deploy.yml` (lint, typecheck, test, deploy). Unico
   secret GitHub: `VERCEL_TOKEN`.
 - Migration: `supabase link --project-ref <ref>` + `supabase db push --linked`, prima su staging, poi
   su prod, **prima** del push del codice che le usa. Poi advisor su entrambi.
-- Prod senza protezione Vercel (l'app ha il suo login; `flightlog.vercel.app` è di un altro).
+- DNS su Cloudflare (CNAME "DNS only" + TXT `_vercel`: il dominio appartiene all'account Vercel
+  personale). Prod senza protezione Vercel: l'app ha il suo login.
 - Login: utenti creati dall'API admin, password nel Portachiavi (`flightlog-login-prod`,
   `flightlog-login-staging`).
 - Password dei database nel Portachiavi (`supabase-db-flightlog`, `supabase-db-flightlog-staging`).
