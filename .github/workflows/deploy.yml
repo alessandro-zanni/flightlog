@@ -1,0 +1,39 @@
+# main deploys to production (Vercel project `flightlog`), develop to staging
+# (`flightlog-staging`, behind Vercel login). The Vercel account is dedicated and
+# has no GitHub connection, so the deploy runs from here.
+#
+# The only secret is VERCEL_TOKEN (azanni-flightlog account → Account Settings →
+# Tokens). Org and project ids are identifiers, not credentials.
+name: Deploy
+
+on:
+  push:
+    branches: [main, develop]
+
+# A newer push on the same branch wins.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_LmcxpWvsJQ1Xas1NCHAPISOw
+      VERCEL_PROJECT_ID: ${{ github.ref_name == 'main' && 'prj_jEHzvNeWmv4hRXqwOShIiZhlXl3C' || 'prj_9os6rzkLVoZarRSVaKcThgzVmYrZ' }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      # The build runs on Vercel, the only place with the Supabase variables.
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run test
+
+      - name: Deploy
+        run: bunx vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
