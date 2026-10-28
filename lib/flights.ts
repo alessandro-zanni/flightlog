@@ -1,18 +1,20 @@
 import airportsJson from "@/data/airports.json";
-import flightsJson from "@/data/flights.json";
 
 export type Flight = {
+  id?: number;
   date: string;
   from: string;
   to: string;
   airline: string;
-  flight?: string;
-  pnr?: string;
+  flight?: string | null;
+  pnr?: string | null;
 };
 export type Airport = { name: string; city: string; country: string; lat: number; lon: number };
 
 export const airports = airportsJson as Record<string, Airport>;
-export const flights = (flightsJson as Flight[]).toSorted((a, b) => b.date.localeCompare(a.date));
+
+// DB columns are origin/destination ("from"/"to" are SQL keywords); alias back to the app's shape.
+export const FLIGHT_COLUMNS = "id, date, from:origin, to:destination, airline, flight, pnr";
 
 const EARTH_KM = 6371;
 const rad = (d: number) => (d * Math.PI) / 180;
