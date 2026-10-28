@@ -26,13 +26,16 @@ Account dedicati (`azanni-flightlog` su Vercel, org "Flightlog" su Supabase), to
 
 | Ramo      | Supabase (eu-central-1)                      | Vercel (fra1)                           |
 | --------- | -------------------------------------------- | --------------------------------------- |
-| `main`    | `flightlog` (`ttqhycpthnrvzjhcxysq`)         | `flightlog`                             |
+| `main`    | `flightlog` (`ttqhycpthnrvzjhcxysq`)         | `flightlog` → flightlog-taupe.vercel.app |
 | `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | `flightlog-staging`, dietro login Vercel |
 
 - Push su `main`/`develop` → `.github/workflows/deploy.yml` (lint, typecheck, test, deploy). Unico
   secret GitHub: `VERCEL_TOKEN`.
 - Migration: `supabase link --project-ref <ref>` + `supabase db push --linked`, prima su staging, poi
   su prod, **prima** del push del codice che le usa. Poi advisor su entrambi.
+- Prod senza protezione Vercel (l'app ha il suo login; `flightlog.vercel.app` è di un altro).
+- Login: utenti creati dall'API admin, password nel Portachiavi (`flightlog-login-prod`,
+  `flightlog-login-staging`).
 - Password dei database nel Portachiavi (`supabase-db-flightlog`, `supabase-db-flightlog-staging`).
 
 ## Static analysis
