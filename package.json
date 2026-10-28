@@ -7,13 +7,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sonar": "bun test --coverage --coverage-reporter=lcov && sonar-scanner-npm"
+    "sonar": "bun test --coverage --coverage-reporter=lcov && sonar-scanner-npm",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "db:types": "supabase gen types typescript --local > lib/database.types.ts",
+    "db:import": "bun scripts/import-flights.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
     "d3-geo": "^3.1.1",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2"
   },
