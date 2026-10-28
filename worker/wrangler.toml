@@ -1,0 +1,12 @@
+# Deploy: bun run worker:deploy (CLOUDFLARE_API_TOKEN from ~/.zshrc). The secret
+# INBOUND_SECRET is set with `wrangler secret put`, never here.
+name = "flightlog-inbound"
+main = "index.ts"
+compatibility_date = "2026-10-01"
+account_id = "d5a8ae5e87ded2ee009d724425d7754b"
+workers_dev = false
+
+[vars]
+INBOUND_URL = "https://flightlog.alessandrozanni.dev/api/inbound"
+ALLOWED_FROM = "me@gmail.com,other@gmail.com"
+FORWARD_TO = "me@gmail.com"
