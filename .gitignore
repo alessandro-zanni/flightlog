@@ -50,3 +50,6 @@ next-env.d.ts
 /.impeccable/*
 !/.impeccable/surfaces/
 !/.impeccable/design.json
+
+# playwright mcp
+.playwright-mcp/
