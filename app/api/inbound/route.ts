@@ -24,22 +24,14 @@ export async function POST(request: Request) {
   const existing = filters.length ? await supabase.from("flights").select().or(filters.join(",")) : { data: [], error: null };
   if (existing.error) return Response.json({ error: existing.error.message }, { status: 500 });
 
-  // ponytail: three statements, not one transaction; a failure halfway leaves part of the change applied
+  // One transaction (supabase/migrations/*_apply_flight_plan.sql): all of the plan or none of it.
   const plan = planChanges(existing.data, extraction);
-  if (plan.remove.length) {
-    const { error } = await supabase.from("flights").delete().in("id", plan.remove);
-    if (error) return Response.json({ error: error.message }, { status: 500 });
-  }
-  for (const { id, values } of plan.update) {
-    const { error } = await supabase.from("flights").update(values).eq("id", id);
-    if (error) return Response.json({ error: error.message }, { status: 500 });
-  }
-  if (plan.insert.length) {
-    const { error } = await supabase
-      .from("flights")
-      .upsert(plan.insert, { onConflict: "date,origin,destination,flight", ignoreDuplicates: true });
-    if (error) return Response.json({ error: error.message }, { status: 500 });
-  }
+  const { error } = await supabase.rpc("apply_flight_plan", {
+    p_remove: plan.remove,
+    p_update: plan.update,
+    p_insert: plan.insert,
+  });
+  if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({
     extracted: extraction.legs.length,
     inserted: plan.insert.length,

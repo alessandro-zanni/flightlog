@@ -43,7 +43,9 @@ export type Database = {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "apply_flight_plan":
+{ Args: { "p_insert": Json,"p_remove": (number)[],"p_update": Json }; Returns: undefined
+                           }
           }
           Enums: {
             [_ in never]: never
