@@ -125,9 +125,9 @@ components:
 
 **Creative North Star: "The Overhead Sign"**
 
-Flightlog is set the way an international airport sets its wayfinding: flat black sign panels hung over a white reading ground, with one colour, airport yellow, reserved for the thing you are walking toward. The next flight is a single yellow overhead band; the history below it reads like a concourse of black section signs with ruled rows beneath. Nothing floats, nothing is rounded, nothing glows. Hierarchy comes from scale and contrast alone: IATA codes and figures set at monumental size in a heavy humanist grotesk, everything else in calm sentence case.
+Flightlog is set the way an international airport sets its wayfinding: flat black sign panels hung over a white reading ground, with one colour, airport yellow, reserved for the thing you are walking toward. The next flight is a single yellow overhead band; the history below it reads like a concourse of black section signs with ruled rows beneath. Nothing floats, nothing is rounded, nothing glows, except the globe, the one lit object in the system. Hierarchy comes from scale and contrast alone: IATA codes and figures set at monumental size in a heavy humanist grotesk, everything else in calm sentence case.
 
-The world is warm rather than technical. Hanken Grotesk is a humanist sans, not a monospace or a condensed departures-board face; pictograms are solid white shapes on black inset plates, the way real terminal signage draws them. The map is a sign-black field where routes are drawn in yellow and airports are white points, and it shares the yellow with the list: hovering or focusing a row lights that row's route and dims the rest.
+The world is warm rather than technical. Hanken Grotesk is a humanist sans, not a monospace or a condensed departures-board face; pictograms are solid white shapes on black inset plates, the way real terminal signage draws them. The map is a dark 3D globe hung in a sign-black field, where routes arc in yellow and airports are white points, and it shares the yellow with the list: hovering or focusing a row turns the globe to that row's route, lights it and dims the rest.
 
 Density is that of a sign, not a dashboard: few elements, very large, with a fixed 16px gutter. On a phone everything stacks; on a wide screen the map and figure directory hold a sticky left column while the list runs beside them.
 
@@ -151,7 +151,7 @@ A signage palette: one saturated wayfinding yellow, a sign-black family, a white
 
 ### Neutral
 - **Sign Black** (ink): top bar, footer, section signs, pictogram plates, map field, figure directory, primary button, input borders, and all body text on white.
-- **Panel Black** (panel): land masses on the map, one step above the sign-black field.
+- **Panel Black** (panel): the globe's ocean, one step above the sign-black field; land sits one step higher in panel-line grey.
 - **Panel Line** (panel-line): the hairlines that rule the figure directory into gate cells on black.
 - **Ground White** (ground): the reading ground for lists and forms, and text on black panels. Currently hardcoded in the body rule rather than declared as a theme token.
 - **Muted Grey** (muted): secondary text on white (dates, city pairs, the "optional" hint, placeholders, the delete warning) and the dimmed routes on a single-flight map.
@@ -203,11 +203,11 @@ From 1024px the home page splits into two equal columns: map and figure director
 
 The system is flat. There are no drop shadows and no tonal elevation; depth is replaced by contrast between black sign panels and the white ground, and by stickiness (the band and the wide-screen map column pin in place rather than lifting). The single box-shadow in the system is part of the focus indicator, a solid 5px ink halo outside a 3px yellow outline, so focus reads on both yellow and black surfaces.
 
-**The Flat Sign Rule.** Panels are flat signs with hard edges. State is shown by colour change (row to yellow, button to yellow, band to pressed yellow), never by lift or shadow.
+**The Flat Sign Rule.** Panels are flat signs with hard edges. State is shown by colour change (row to yellow, button to yellow, band to pressed yellow), never by lift or shadow. The globe is the declared exception: a lit sphere with a faint white atmosphere, contained in its own black field, so the depth stays in the map and never leaks into the UI.
 
 ## Shapes
 
-Every panel, button, input, plate and message has square corners (0px). Borders are heavy and solid when they mark a control (2px ink on inputs, 2px yellow on Add, 2px red on Delete and errors) and 1px when they rule content (row dividers, directory cells). Pictogram plates are exact squares (56px, 72px in the band from 640px; 32px for the wordmark's white plate). The only curves are cartographic: map routes have round caps and airports are 4px-radius points, which belong to the map's own drawing, not to the UI.
+Every panel, button, input, plate and message has square corners (0px). Borders are heavy and solid when they mark a control (2px ink on inputs, 2px yellow on Add, 2px red on Delete and errors) and 1px when they rule content (row dividers, directory cells). Pictogram plates are exact squares (56px, 72px in the band from 640px; 32px for the wordmark's white plate). The only curves are cartographic: the globe, its arcing routes and its round airport points belong to the map's own drawing, not to the UI.
 
 ## Components
 
@@ -247,7 +247,13 @@ A fixed-column row on white with a rule-grey divider: muted date, extra-bold rou
 A full-bleed black strip with an extra-bold label: white for each year, yellow for the upcoming group.
 
 ### Route Map
-A sign-black field with panel-black land outlined in ink, yellow 2px routes and white airport points, framed to the airports actually flown rather than the whole globe. On a flight page the current route is drawn yellow at 4px and the others in muted grey.
+A WebGL globe (react-globe.gl) on a sign-black field: panel-black ocean, panel-line land outlined in ink, a faint white atmosphere (never yellow), yellow routes arcing off the surface and white airport points. Hovering an airport shows its IATA code on a small black plate. Drag turns it with inertia, pinch or wheel zooms. Route width scales with the camera so routes stay hairlines up close.
+
+- **Arrival** (the one authored moment): the whole planet first, then a 1.4s flight down to the part of it actually flown.
+- **Row hover:** the globe turns to the route in 700ms, lights it and dims the rest to 20%; 400ms after the pointer leaves the list it turns back home.
+- **Flight page:** framed on the current route, drawn yellow, the others in muted grey.
+- **Fallback:** the flat SVG map (Natural Earth, framed to the flown airports) renders first and stays when there is no WebGL; the globe fades in over it.
+- **Reduced motion:** no arrival, no inertia, instant turns; the colour change of the lit route stays.
 
 ## Do's and Don'ts
 
@@ -265,6 +271,6 @@ A sign-black field with panel-black land outlined in ink, yellow 2px routes and 
 - **Don't** add drop shadows or lift on hover; change colour instead.
 - **Don't** use yellow as decoration, a static fill, or a brand wash.
 - **Don't** add a dark mode or invert the scheme; signs don't invert at night.
-- **Don't** show the whole globe ringed by separate stat tiles; the map is framed to the flown world and figures sit in one ruled directory.
+- **Don't** ring the globe with separate stat tiles; figures sit in one ruled directory below it, and the globe opens on the flown world, not the whole planet.
 - **Don't** set prose in uppercase or use a condensed or monospace departures-board face.
 - **Don't** type arrow characters into routes; use the drawn arrow pictogram.
