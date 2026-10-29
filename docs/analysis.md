@@ -42,7 +42,7 @@
 - **Restyling fatto (#3)**: stile segnaletica d'aeroporto (sistema in `DESIGN.md`), interfaccia in inglese e
   italiano secondo la lingua del browser, pagina di modifica per ogni volo. La modifica usa un grant di update
   sulle sole colonne visibili all'utente: la migration va applicata su staging e prod prima del codice
-  (staging fatto il 2026-10-29; prod prima del merge in `main`).
+  (fatto su entrambi il 2026-10-29).
 - **Mappa come globo 3D** (2026-10-29): globo WebGL con `react-globe.gl` al posto della mappa piatta, con arrivo
   animato, rotazione sulla rotta al passaggio sulle righe, drag e zoom. La mappa SVG resta come primo render e
   come ripiego senza WebGL. Il chunk del globo pesa circa 570 KB gzip e si carica in lazy; dettagli in `DESIGN.md`.
