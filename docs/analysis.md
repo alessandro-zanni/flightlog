@@ -35,10 +35,12 @@
   stile Been, senza costi di API). Le mail arrivano da un Cloudflare Email Worker su `flights@alessandrozanni.dev`
   (inoltro da filtri Gmail), non da Gmail API: niente OAuth Google né token che scadono. Estrazione con Claude
   Haiku 5.5, circa 0,001 $ a mail; modifiche e cancellazioni aggiornano la tratta originale per PNR.
+  Il worker accetta solo mail con `spf=pass` per l'envelope sender nell'`Authentication-Results` scritto da
+  Cloudflare: il suo filtro (SPF o DKIM, su qualsiasi dominio) lascia passare un mittente falsificato.
 - **Fase 3 (app iOS) scartata** (2026-10-29): l'interfaccia resta solo la web app React. Senza tracking live
   le Live Activities servono a poco e un'app nativa sarebbe una seconda interfaccia da tenere allineata.
-- **Prossimi lavori, in ordine**: verifica del mittente nel worker (#1, sicurezza), restyling dell'interfaccia
-  con impeccable (#3), recupero dei voli storici mancanti (#2).
+- **Prossimi lavori, in ordine**: restyling dell'interfaccia con impeccable (#3), recupero dei voli storici
+  mancanti (#2).
 
 ## Dati storici: stato (2026-10-27)
 - Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `docs/ryanair-bookings.md`.
