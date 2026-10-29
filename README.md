@@ -44,12 +44,18 @@ Account dedicati (`azanni-flightlog` su Vercel, org "Flightlog" su Supabase), to
 Inoltra (a mano o con un filtro Gmail) le conferme di volo a `flights@alessandrozanni.dev`.
 
 1. Cloudflare Email Routing: regola `flights@` → Email Worker `flightlog-inbound` (`worker/`). Gli
-   altri indirizzi restano sul catch-all verso Gmail.
+   altri indirizzi restano sul catch-all verso Gmail. Inoltri automatici: vincoli nel `CLAUDE.md` di
+   `~/projects/personal/gmail-filters` (sezione "Inoltro a flightlog").
 2. Il Worker accetta solo i mittenti in `ALLOWED_FROM` (senza il `+tag` dell'inoltro automatico
    Gmail), legge la mail con `postal-mime` e la manda a `POST /api/inbound` con `INBOUND_SECRET`.
    La mail di conferma inoltro di Gmail passa a `FORWARD_TO`.
-3. `/api/inbound` chiede a Claude Haiku 5.5 le tratte in cui Alessandro è passeggero e le inserisce
-   (i doppioni vengono saltati). Costo: circa 0,001 $ a mail.
+3. `/api/inbound` chiede a Claude Haiku 5.5 PNR e tratte in cui Alessandro è passeggero, con stato
+   (confermata/cancellata), tratta originale sostituita e se la mail elenca tutta la prenotazione
+   (`complete`). `planChanges` le confronta con le righe dello stesso PNR (o senza PNR, inserite a mano):
+   - nuova tratta → insert; tratta già presente → aggiorna volo/PNR se cambiano;
+   - cancellata → delete; modificata con `replaces` → update della riga originale;
+   - itinerario completo → è lo stato della prenotazione: le tratte di quel PNR che non elenca più vanno.
+   Una mail senza tratte non tocca niente. Costo: circa 0,001 $ a mail.
 4. Nessun volo trovato o errore → il Worker rifiuta la mail: arriva un bounce al mittente, nessuna
    mail si perde in silenzio.
 
