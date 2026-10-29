@@ -8,5 +8,5 @@ workers_dev = false
 
 [vars]
 INBOUND_URL = "https://flightlog.alessandrozanni.dev/api/inbound"
-ALLOWED_FROM = "me@gmail.com,other@gmail.com"
+ALLOWED_FROM = "me@gmail.com"
 FORWARD_TO = "me@gmail.com"
