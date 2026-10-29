@@ -1,9 +1,12 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { Database } from "@/lib/database.types";
 
 export async function createClient() {
+  // supabase-js reads Date.now() to check the session: keep everything after this out of prerendering.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
