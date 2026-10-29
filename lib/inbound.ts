@@ -1,42 +1,71 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { TablesInsert } from "@/lib/database.types";
+import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
 
 // What the Cloudflare Email Worker posts to /api/inbound.
 export type InboundEmail = { from: string; subject: string; date?: string; text?: string; html?: string };
 
-type Extracted = { date: string; from: string; to: string; airline: string; flight: string | null; pnr: string | null };
+type Route = { date: string; from: string; to: string };
+type Leg = Route & {
+  airline: string;
+  flight: string | null;
+  status: "confirmed" | "cancelled";
+  replaces: Route | null;
+};
+export type Extraction = { pnr: string | null; complete: boolean; legs: Leg[] };
+
+type Row = Tables<"flights">;
+export type Plan = { insert: TablesInsert<"flights">[]; update: { id: number; values: TablesUpdate<"flights"> }[]; remove: number[] };
+
+const ROUTE = {
+  date: { type: "string", description: "Local departure date, YYYY-MM-DD" },
+  from: { type: "string", description: "Departure airport IATA code" },
+  to: { type: "string", description: "Arrival airport IATA code" },
+};
 
 const SCHEMA = {
   type: "object",
   properties: {
-    flights: {
+    pnr: { type: ["string", "null"], description: "Booking reference" },
+    complete: {
+      type: "boolean",
+      description: "True if the email lists every current leg of the booking (a full itinerary or confirmation)",
+    },
+    legs: {
       type: "array",
       items: {
         type: "object",
         properties: {
-          date: { type: "string", description: "Local departure date, YYYY-MM-DD" },
-          from: { type: "string", description: "Departure airport IATA code" },
-          to: { type: "string", description: "Arrival airport IATA code" },
+          ...ROUTE,
           airline: { type: "string", description: "Operating airline name, e.g. Ryanair" },
           flight: { type: ["string", "null"], description: "Flight number, e.g. FR1234" },
-          pnr: { type: ["string", "null"], description: "Booking reference" },
+          status: { type: "string", enum: ["confirmed", "cancelled"] },
+          replaces: {
+            anyOf: [
+              { type: "null" },
+              { type: "object", properties: ROUTE, required: ["date", "from", "to"], additionalProperties: false },
+            ],
+            description: "For a changed leg: the original leg it replaces",
+          },
         },
-        required: ["date", "from", "to", "airline", "flight", "pnr"],
+        required: ["date", "from", "to", "airline", "flight", "status", "replaces"],
         additionalProperties: false,
       },
     },
   },
-  required: ["flights"],
+  required: ["pnr", "complete", "legs"],
   additionalProperties: false,
 };
 
-const SYSTEM = `You read one email forwarded by Alessandro Zanni and list the flight legs he is booked on.
+const SYSTEM = `You read one email forwarded by Alessandro Zanni about his flights: a booking confirmation,
+an itinerary, a schedule change or a cancellation. List the legs it is about.
 - One entry per leg: a return trip is two entries, a connection is one entry per segment.
 - Only legs with Alessandro Zanni among the passengers. If the email names no passengers, assume he is one.
-- Skip legs the email says are cancelled or replaced, and anything that is not a confirmed booking
-  (offers, abandoned carts, price alerts, newsletters, check-in reminders without the itinerary).
-- Use the local departure date. Airports as 3-letter IATA codes.
-- No flights in the email: return an empty list.`;
+- status "cancelled" for legs the email cancels. For a leg moved to another time, date or route, give the new
+  leg as "confirmed" with "replaces" set to the original leg when the email states it.
+- complete = true only if the email lists every current leg of the booking (confirmations and itineraries do;
+  a notice about one changed or cancelled leg does not).
+- Offers, abandoned carts, price alerts, newsletters, check-in reminders without the itinerary: no legs.
+- Use the local departure date. Airports as 3-letter IATA codes.`;
 
 // ponytail: regex tag strip, enough for airline itineraries; use a real HTML parser if tables come out garbled
 export function htmlToText(html: string): string {
@@ -60,31 +89,65 @@ export function emailBody(email: InboundEmail): string {
   return htmlToText(text || email.html || "");
 }
 
-// Model output -> DB rows; legs that would fail the table's checks are dropped, not the whole email.
-export function toRows(flights: Extracted[]): TablesInsert<"flights">[] {
-  const iata = /^[A-Z]{3}$/;
-  return flights
-    .map((f) => ({
-      date: f.date,
-      origin: f.from.trim().toUpperCase(),
-      destination: f.to.trim().toUpperCase(),
-      airline: f.airline.trim(),
-      flight: f.flight?.replace(/\s+/g, "").toUpperCase() || null,
-      pnr: f.pnr?.trim().toUpperCase() || null,
-    }))
-    .filter(
-      (r) =>
-        /^\d{4}-\d{2}-\d{2}$/.test(r.date) &&
-        !Number.isNaN(Date.parse(r.date)) &&
-        iata.test(r.origin) &&
-        iata.test(r.destination) &&
-        r.origin !== r.destination &&
-        r.airline !== "",
-    );
+const code = (s: string) => s.trim().toUpperCase();
+const validRoute = (r: Route) =>
+  /^\d{4}-\d{2}-\d{2}$/.test(r.date) &&
+  !Number.isNaN(Date.parse(r.date)) &&
+  /^[A-Z]{3}$/.test(code(r.from)) &&
+  /^[A-Z]{3}$/.test(code(r.to)) &&
+  code(r.from) !== code(r.to);
+const sameRoute = (row: Row, r: Route) =>
+  row.date === r.date && row.origin === code(r.from) && row.destination === code(r.to);
+
+// Model output + the rows it may touch -> what to write. Legs that would fail the table's checks are
+// dropped, not the whole email. A complete itinerary is the booking's current state: its other legs go.
+export function planChanges(existing: Row[], ex: Extraction): Plan {
+  const pnr = ex.pnr?.trim().toUpperCase() || null;
+  // A row belongs to this booking if it has the same PNR, or no PNR at all (entered by hand).
+  const candidates = existing.filter((r) => !pnr || r.pnr === pnr || r.pnr === null);
+  const plan: Plan = { insert: [], update: [], remove: [] };
+  const kept = new Set<number>();
+
+  for (const leg of ex.legs) {
+    if (!validRoute(leg) || !leg.airline.trim()) continue;
+    const values = {
+      date: leg.date,
+      origin: code(leg.from),
+      destination: code(leg.to),
+      airline: leg.airline.trim(),
+      flight: leg.flight?.replace(/\s+/g, "").toUpperCase() || null,
+      pnr,
+    };
+    const current = candidates.find((r) => sameRoute(r, leg));
+
+    if (leg.status === "cancelled") {
+      if (current) plan.remove.push(current.id);
+      continue;
+    }
+    const replaced = leg.replaces && validRoute(leg.replaces) ? candidates.find((r) => sameRoute(r, leg.replaces!)) : undefined;
+    const target = current ?? replaced;
+    if (!target) {
+      plan.insert.push(values);
+      continue;
+    }
+    kept.add(target.id);
+    const changed = (Object.keys(values) as (keyof typeof values)[]).some((k) => values[k] !== null && values[k] !== target[k]);
+    if (changed) plan.update.push({ id: target.id, values });
+  }
+
+  if (ex.complete && pnr) {
+    for (const r of existing) if (r.pnr === pnr && !kept.has(r.id) && !plan.remove.includes(r.id)) plan.remove.push(r.id);
+  }
+  return plan;
 }
 
-export async function extractFlights(email: InboundEmail, client = new Anthropic()): Promise<Extracted[]> {
-  const body = emailBody(email);
+// Every date the extraction mentions: the rows planChanges may need, besides those with the same PNR.
+export function mentionedDates(ex: Extraction): string[] {
+  const dates = ex.legs.flatMap((l) => [l.date, l.replaces?.date ?? ""]);
+  return [...new Set(dates.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)))];
+}
+
+export async function extractFlights(email: InboundEmail, client = new Anthropic()): Promise<Extraction> {
   const response = await client.messages.create({
     model: "claude-haiku-5-5",
     max_tokens: 16000,
@@ -93,7 +156,7 @@ export async function extractFlights(email: InboundEmail, client = new Anthropic
     messages: [
       {
         role: "user",
-        content: `From: ${email.from}\nDate: ${email.date ?? "unknown"}\nSubject: ${email.subject}\n\n${body}`,
+        content: `From: ${email.from}\nDate: ${email.date ?? "unknown"}\nSubject: ${email.subject}\n\n${emailBody(email)}`,
       },
     ],
   });
@@ -101,5 +164,5 @@ export async function extractFlights(email: InboundEmail, client = new Anthropic
   if (response.stop_reason === "max_tokens") throw new Error("Extraction cut off at max_tokens");
   const text = response.content.find((b) => b.type === "text");
   if (!text) throw new Error("Extraction returned no text");
-  return (JSON.parse(text.text) as { flights: Extracted[] }).flights;
+  return JSON.parse(text.text) as Extraction;
 }
