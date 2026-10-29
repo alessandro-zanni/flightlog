@@ -39,8 +39,10 @@
   Cloudflare: il suo filtro (SPF o DKIM, su qualsiasi dominio) lascia passare un mittente falsificato.
 - **Fase 3 (app iOS) scartata** (2026-10-29): l'interfaccia resta solo la web app React. Senza tracking live
   le Live Activities servono a poco e un'app nativa sarebbe una seconda interfaccia da tenere allineata.
-- **Prossimi lavori, in ordine**: restyling dell'interfaccia con impeccable (#3), compresa l'interfaccia in
-  inglese e italiano secondo la lingua del browser; recupero dei voli storici mancanti (#2).
+- **Restyling fatto (#3)**: stile segnaletica d'aeroporto (sistema in `DESIGN.md`), interfaccia in inglese e
+  italiano secondo la lingua del browser, pagina di modifica per ogni volo. La modifica usa un grant di update
+  sulle sole colonne visibili all'utente: la migration va applicata su staging e prod prima del codice.
+- **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
 
 ## Dati storici: stato (2026-10-27)
 - Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `docs/ryanair-bookings.md`.
