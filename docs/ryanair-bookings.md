@@ -1,5 +1,6 @@
 # Ryanair bookings (myRyanair, scraped 2026-10-27)
 Years are inferred from list order (descending) — verify against emails/Takeout. Legs: N = number shown on the card.
+PNRs are kept out of git: the full list is in `private/ryanair-bookings.md` (gitignored, local only).
 
 | Route (as shown) | Dates | Year (inferred) | Legs |
 |---|---|---|---|
