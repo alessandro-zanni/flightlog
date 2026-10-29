@@ -38,7 +38,7 @@
 - **Fase 3 (app iOS) aperta**, da decidere: senza tracking live le Live Activities servono a poco.
 
 ## Dati storici: stato (2026-10-27)
-- Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `~/flights/ryanair-bookings.md`.
+- Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `docs/ryanair-bookings.md`.
 - Takeout account terziario: 989 messaggi (2015-2026), nessun volo. Script riusabile: `scripts/mbox-flights.py`.
 - Takeout account secondario (`~/flights/takeout/alessandro-1998/`): 16111 messaggi, 18 itinerari Ryanair 2019-2026. Aggiunte 12 tratte 2019-2024. Esclusi: XXXXXX (familiari), XXXXXX (altro passeggero), XXXXXX (cancellato COVID, sostituito da XXXXXX + XXXXXX), eDreams 2021 (carrelli abbandonati).
 - Inseriti a mano, da ricordo (nessuna mail, la mailbox dell'account secondario parte da giugno 2017): BLQ-OLB-BLQ 10-24 ago 2015 (Wizz Air da confermare), BGY-SHJ-BGY Air Arabia 14-21 ott 2023 (G9711/G9710, dal pacchetto agenzia "Vivere a Dubai").
