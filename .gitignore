@@ -45,3 +45,8 @@ next-env.d.ts
 
 # personal data (PNRs) kept out of git
 /private/
+
+# impeccable working files (decision mocks, reference images, review captures)
+/.impeccable/*
+!/.impeccable/surfaces/
+!/.impeccable/design.json
