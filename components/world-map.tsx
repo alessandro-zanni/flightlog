@@ -2,6 +2,7 @@ import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import type { GeometryCollection, Topology } from "topojson-specification";
 import countriesTopo from "world-atlas/countries-110m.json";
+import { Globe } from "@/components/globe";
 import { airports, type Flight } from "@/lib/flights";
 
 const W = 800;
@@ -40,26 +41,38 @@ export function WorldMap({
   }
   const path = geoPath(projection);
 
+  // Coordinates are resolved here so the airport dataset never ships to the browser.
+  const globeRoutes = [...routes].map(([key, [[fromLon, fromLat], [toLon, toLat]]]) => ({
+    key,
+    from: { lat: fromLat, lon: fromLon },
+    to: { lat: toLat, lon: toLon },
+  }));
+  const globeAirports = visited.map((code) => ({ code, lat: airports[code].lat, lon: airports[code].lon }));
+
+  // The flat map is what loads first and what stays when there is no WebGL; the globe fades in over it.
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={`block w-full bg-ink ${className}`} role="img" aria-label={label}>
-      <path d={path(land) ?? ""} className="fill-panel stroke-ink" strokeWidth={1} />
-      {/* The highlighted route is drawn last so no other route covers it. */}
-      {[...routes].sort(([a], [b]) => Number(a === highlight) - Number(b === highlight)).map(([key, coordinates]) => (
-        <path
-          key={key}
-          data-route={key}
-          d={path({ type: "LineString", coordinates }) ?? ""}
-          className={`fill-none transition-[stroke-opacity,stroke-width] duration-200 ${
-            highlight && key !== highlight ? "stroke-muted" : "stroke-sign"
-          }`}
-          strokeWidth={key === highlight ? 4 : 2}
-          strokeLinecap="round"
-        />
-      ))}
-      {visited.map((code) => {
-        const p = projection([airports[code].lon, airports[code].lat]);
-        return p ? <circle key={code} cx={p[0]} cy={p[1]} r={4} className="fill-white" /> : null;
-      })}
-    </svg>
+    <div role="img" aria-label={label} className="relative bg-ink">
+      <svg viewBox={`0 0 ${W} ${H}`} className={`block w-full bg-ink ${className}`} aria-hidden>
+        <path d={path(land) ?? ""} className="fill-panel stroke-ink" strokeWidth={1} />
+        {/* The highlighted route is drawn last so no other route covers it. */}
+        {[...routes].sort(([a], [b]) => Number(a === highlight) - Number(b === highlight)).map(([key, coordinates]) => (
+          <path
+            key={key}
+            data-route={key}
+            d={path({ type: "LineString", coordinates }) ?? ""}
+            className={`fill-none transition-[stroke-opacity,stroke-width] duration-200 ${
+              highlight && key !== highlight ? "stroke-muted" : "stroke-sign"
+            }`}
+            strokeWidth={key === highlight ? 4 : 2}
+            strokeLinecap="round"
+          />
+        ))}
+        {visited.map((code) => {
+          const p = projection([airports[code].lon, airports[code].lat]);
+          return p ? <circle key={code} cx={p[0]} cy={p[1]} r={4} className="fill-white" /> : null;
+        })}
+      </svg>
+      <Globe routes={globeRoutes} airports={globeAirports} highlight={highlight} />
+    </div>
   );
 }

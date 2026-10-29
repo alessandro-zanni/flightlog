@@ -44,3 +44,13 @@ input {
 input::placeholder {
   color: var(--color-muted);
 }
+
+/* Airport code on the globe: a small black sign plate, not the library's grey bubble. */
+.float-tooltip-kap:has(.globe-label) {
+  padding: 4px 8px;
+  border-radius: 0;
+  background: var(--color-ink);
+  font: 800 1rem/1 var(--font-sans);
+  letter-spacing: -0.025em;
+  color: #ffffff;
+}
