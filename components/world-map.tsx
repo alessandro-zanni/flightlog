@@ -4,46 +4,61 @@ import type { GeometryCollection, Topology } from "topojson-specification";
 import countriesTopo from "world-atlas/countries-110m.json";
 import { airports, type Flight } from "@/lib/flights";
 
-const W = 960;
-const H = 500;
+const W = 800;
+const H = 560;
+const PAD = 48;
 
-export function WorldMap({ flights }: Readonly<{ flights: Flight[] }>) {
-  const topo = countriesTopo as unknown as Topology;
-  const land = feature(topo, topo.objects.countries as GeometryCollection);
-  const projection = geoNaturalEarth1().fitSize([W, H], { type: "Sphere" });
-  const path = geoPath(projection);
+const topo = countriesTopo as unknown as Topology;
+const land = feature(topo, topo.objects.countries as GeometryCollection);
 
+// Direction-free key, shared with the list rows so hovering a row can light its route.
+export const routeKey = (f: Pick<Flight, "from" | "to">) => [f.from, f.to].sort((x, y) => x.localeCompare(y)).join("-");
+
+export function WorldMap({
+  flights,
+  label,
+  highlight,
+  className = "",
+}: Readonly<{ flights: Flight[]; label: string; highlight?: string; className?: string }>) {
   const routes = new Map<string, [number, number][]>();
   for (const f of flights) {
     const a = airports[f.from];
     const b = airports[f.to];
-    if (!a || !b) continue;
-    routes.set([f.from, f.to].sort((x, y) => x.localeCompare(y)).join("-"), [
-      [a.lon, a.lat],
-      [b.lon, b.lat],
-    ]);
+    if (a && b) routes.set(routeKey(f), [[a.lon, a.lat], [b.lon, b.lat]]);
   }
-  const visited = new Set(flights.flatMap((f) => [f.from, f.to]));
+  const visited = [...new Set(flights.flatMap((f) => [f.from, f.to]))].filter((c) => airports[c]);
+
+  // Frame the flown world, not the whole globe: a decade of short-haul is a European map.
+  const projection = geoNaturalEarth1();
+  if (visited.length > 1) {
+    projection.fitExtent(
+      [[PAD, PAD], [W - PAD, H - PAD]],
+      { type: "MultiPoint", coordinates: visited.map((c) => [airports[c].lon, airports[c].lat]) },
+    );
+  } else {
+    projection.fitSize([W, H], { type: "Sphere" });
+  }
+  const path = geoPath(projection);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-xl bg-slate-900" role="img" aria-label="Map of flown routes">
-      <path d={path({ type: "Sphere" }) ?? ""} className="fill-slate-900" />
-      {land.features.map((c, i) => (
-        <path key={i} d={path(c) ?? ""} className="fill-slate-700 stroke-slate-900" strokeWidth={0.5} />
-      ))}
-      {[...routes].map(([route, coordinates]) => (
+    <svg viewBox={`0 0 ${W} ${H}`} className={`block w-full bg-ink ${className}`} role="img" aria-label={label}>
+      <path d={path(land) ?? ""} className="fill-panel stroke-ink" strokeWidth={1} />
+      {/* The highlighted route is drawn last so no other route covers it. */}
+      {[...routes].sort(([a], [b]) => Number(a === highlight) - Number(b === highlight)).map(([key, coordinates]) => (
         <path
-          key={route}
+          key={key}
+          data-route={key}
           d={path({ type: "LineString", coordinates }) ?? ""}
-          className="fill-none stroke-amber-400"
-          strokeWidth={1.2}
-          strokeOpacity={0.8}
+          className={`fill-none transition-[stroke-opacity,stroke-width] duration-200 ${
+            highlight && key !== highlight ? "stroke-muted" : "stroke-sign"
+          }`}
+          strokeWidth={key === highlight ? 4 : 2}
+          strokeLinecap="round"
         />
       ))}
-      {[...visited].map((code) => {
-        const a = airports[code];
-        const p = a && projection([a.lon, a.lat]);
-        return p ? <circle key={code} cx={p[0]} cy={p[1]} r={2.5} className="fill-white" /> : null;
+      {visited.map((code) => {
+        const p = projection([airports[code].lon, airports[code].lat]);
+        return p ? <circle key={code} cx={p[0]} cy={p[1]} r={4} className="fill-white" /> : null;
       })}
     </svg>
   );

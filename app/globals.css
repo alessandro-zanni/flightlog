@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
+/* Airport sign system: yellow is reserved for wayfinding (next flight, primary action, lit route). */
+@theme {
+  --color-sign: #ffcc00;
+  --color-sign-deep: #e6b800;
+  --color-ink: #0b0b0b;
+  --color-panel: #1a1a1a;
+  --color-panel-line: #333333;
+  --color-muted: #4a4a4a;
+  --color-muted-dark: #b5b5b5;
+  --color-rule: #e6e6e6;
+  --color-alert: #c8102e;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Signs don't invert at night: one light reading ground, black sign panels. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--color-sign);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-sign);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-ink);
+}
+
+input {
+  caret-color: var(--color-ink);
+}
+
+input::placeholder {
+  color: var(--color-muted);
 }
