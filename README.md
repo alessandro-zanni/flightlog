@@ -1,6 +1,6 @@
 # flightlog
 
-App personale per tracciare i voli (storico + voli in corso), ispirata a Flighty. Stato: fase 1 in locale (Supabase + login), cloud non ancora creato (2026-10-28).
+App personale per lo storico dei voli, ispirata a Flighty (senza tracking live). Stato: online su flightlog.alessandrozanni.dev, import automatico delle mail di volo (2026-10-29).
 
 Analisi di fattibilità: [docs/analysis.md](docs/analysis.md).
 

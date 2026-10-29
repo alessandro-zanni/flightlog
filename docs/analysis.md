@@ -28,8 +28,14 @@
 2. **Import mail + tracking (2-3 weekend)**: Gmail read-only, estrazione LLM, worker su AeroAPI, alert via web push/Telegram.
 3. **App iOS nativa (opzionale, settimane)**: SwiftUI, Live Activities, widget, push APNs; riusa lo stesso backend.
 
-## Prossimo passo
-Decidere se partire dalla fase 1 usando come seed lo storico in `~/flights/`.
+## Stato (2026-10-29)
+- **Fase 1 fatta**: Supabase (tabella `flights`, login con registrazione chiusa) e Vercel, prod e staging.
+  Storico importato da `data/flights.json`.
+- **Fase 2 fatta, con perimetro ridotto**: solo import dalle mail, niente tracking live né AeroAPI (l'app resta
+  stile Been, senza costi di API). Le mail arrivano da un Cloudflare Email Worker su `flights@alessandrozanni.dev`
+  (inoltro da filtri Gmail), non da Gmail API: niente OAuth Google né token che scadono. Estrazione con Claude
+  Haiku 5.5, circa 0,001 $ a mail; modifiche e cancellazioni aggiornano la tratta originale per PNR.
+- **Fase 3 (app iOS) aperta**, da decidere: senza tracking live le Live Activities servono a poco.
 
 ## Dati storici: stato (2026-10-27)
 - Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `~/flights/ryanair-bookings.md`.
