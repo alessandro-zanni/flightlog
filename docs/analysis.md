@@ -47,6 +47,15 @@
   animato, rotazione sulla rotta al passaggio sulle righe, drag e zoom. La mappa SVG resta come primo render e
   come ripiego senza WebGL. Il chunk del globo pesa circa 570 KB gzip e si carica in lazy; dettagli in `DESIGN.md`.
 - **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
+- **Da fare** (richieste del 2026-10-30, nessuna iniziata):
+  - **Mappa con MapLibre GL JS** in proiezione globo, che diventa piatta zoomando (stile Apple Maps), al posto
+    di `react-globe.gl`. Tile gratuite (es. CARTO dark). MapKit JS scartato: richiede l'Apple Developer Program
+    (99 $/anno). Motivo: su mobile il globo è piccolo e, zoomando, finisce sotto la banda gialla in alto e
+    sotto la barra in basso.
+  - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
+    più un'API con quota gratuita interrogata solo per i voli imminenti (il gate compare poche ore prima).
+  - **Pull to refresh** nella web app installata da Safari su iPhone.
+  - **Live Activities**: restano spente, niente API a pagamento.
 
 ## Dati storici: stato (2026-10-27)
 - Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `docs/ryanair-bookings.md`.
