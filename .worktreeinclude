@@ -1,0 +1,4 @@
+.env.local
+.envrc
+private/
+.impeccable/config.json
