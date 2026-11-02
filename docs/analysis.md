@@ -49,7 +49,7 @@
   Il worker di MapLibre va passato a `setWorkerUrl` (Turbopack sposta il modulo). Chunk circa 290 KB gzip più
   il worker (circa 150 KB), in lazy. Mappa creata e distrutta in un effect: risolve anche #4 (globo vuoto dopo
   il back con `cacheComponents`).
-- **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
+- **Prossimo lavoro**: archi rialzati con deck.gl (#6), poi recupero dei voli storici mancanti (#2).
 - **Da fare** (richieste del 2026-10-30; la mappa MapLibre è fatta, sopra):
   - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
     più un'API con quota gratuita interrogata solo per i voli imminenti (il gate compare poche ore prima).
