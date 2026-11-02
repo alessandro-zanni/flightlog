@@ -74,7 +74,7 @@ export default async function Home() {
           <span className="flex size-8 items-center justify-center bg-white text-ink">
             <Plane className="size-5" />
           </span>
-          Flightlog
+          <span>Flightlog</span>
         </span>
         <Link
             href="/flights/new"

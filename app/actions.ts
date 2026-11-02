@@ -4,11 +4,17 @@ import { refresh } from "next/cache";
 import { RedirectType, redirect } from "next/navigation";
 import { createClient, requireUser } from "@/lib/supabase/server";
 
+// A form field as text: FormData may also hold a File, which String() would turn into "[object File]".
+const field = (formData: FormData, key: string) => {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+};
+
 export async function signIn(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
-    email: String(formData.get("email")),
-    password: String(formData.get("password")),
+    email: field(formData, "email"),
+    password: field(formData, "password"),
   });
   redirect(error ? "/login?error=1" : "/");
 }
@@ -20,13 +26,13 @@ export async function signOut() {
 }
 
 function flightFromForm(formData: FormData) {
-  const code = (key: string) => String(formData.get(key)).trim().toUpperCase();
-  const optional = (key: string) => String(formData.get(key) ?? "").trim() || null;
+  const code = (key: string) => field(formData, key).trim().toUpperCase();
+  const optional = (key: string) => field(formData, key).trim() || null;
   return {
-    date: String(formData.get("date")),
+    date: field(formData, "date"),
     origin: code("from"),
     destination: code("to"),
-    airline: String(formData.get("airline")).trim(),
+    airline: field(formData, "airline").trim(),
     flight: optional("flight")?.toUpperCase() ?? null,
     pnr: optional("pnr")?.toUpperCase() ?? null,
   };

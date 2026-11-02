@@ -68,16 +68,31 @@ an itinerary, a schedule change or a cancellation. List the legs it is about.
 - Use the local departure date. Airports as 3-letter IATA codes.`;
 
 // ponytail: regex tag strip, enough for airline itineraries; use a real HTML parser if tables come out garbled
+// Drops <style>, <script> and <head> blocks in one linear pass: a lazy regex backtracks on an unclosed tag.
+function dropBlocks(html: string): string {
+  const lower = html.toLowerCase();
+  let out = "";
+  let i = 0;
+  for (const m of lower.matchAll(/<(style|script|head)[\s>]/g)) {
+    if (m.index < i) continue;
+    const close = `</${m[1]}>`;
+    const end = lower.indexOf(close, m.index);
+    if (end < 0) break;
+    out += html.slice(i, m.index) + " ";
+    i = end + close.length;
+  }
+  return out + html.slice(i);
+}
+
 export function htmlToText(html: string): string {
-  return html
-    .replace(/<(style|script|head)[\s\S]*?<\/\1>/gi, " ")
+  return dropBlocks(html)
     .replace(/<(br|\/p|\/div|\/tr|\/li|\/h\d)[^>]*>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/[ \t]+/g, " ")
-    .replace(/ *\n */g, "\n")
+    .replace(/ ?\n ?/g, "\n")
     .replace(/\n{2,}/g, "\n")
     .trim();
 }

@@ -7,7 +7,7 @@ export const instant = false;
 
 const field = "block w-full border-2 border-ink bg-white px-3 py-2.5 text-lg";
 
-export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+export default async function LoginPage({ searchParams }: Readonly<PageProps<"/login">>) {
   const [{ error }, { t }] = await Promise.all([searchParams, getI18n()]);
   return (
     <main className="flex flex-1 flex-col">

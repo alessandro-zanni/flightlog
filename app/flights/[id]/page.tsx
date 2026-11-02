@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 // Reads the session on every request: blocking on the server is fine for a personal app.
 export const instant = false;
 
-export default async function EditFlightPage({ params, searchParams }: PageProps<"/flights/[id]">) {
+export default async function EditFlightPage({ params, searchParams }: Readonly<PageProps<"/flights/[id]">>) {
   const [{ id }, { error }] = await Promise.all([params, searchParams]);
   const i18n = await getI18n();
   const { t } = i18n;

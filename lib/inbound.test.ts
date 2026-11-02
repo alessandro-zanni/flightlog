@@ -80,3 +80,9 @@ test("emailBody converts HTML sent as text/plain", () => {
   expect(emailBody({ from: "", subject: "", text: "Plain itinerary", html: "<p>x</p>" })).toBe("Plain itinerary");
   expect(emailBody({ from: "", subject: "", html: "<p>Only html</p>" })).toBe("Only html");
 });
+
+test("htmlToText drops script and head blocks and survives an unclosed one", () => {
+  expect(htmlToText("<head><title>x</title></head><p>A</p><script>1</script><p>B</p>")).toBe("A\nB");
+  expect(htmlToText("<header>H</header>")).toBe("H");
+  expect(htmlToText("<p>A</p><style>never closed " + "a".repeat(50_000))).toContain("A");
+});

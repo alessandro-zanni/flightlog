@@ -27,3 +27,8 @@ test("spfPass ignores forged results below Cloudflare's", async () => {
   const forged = cloudflare("pass", sender);
   expect(spfPass(await headersOf(cloudflare("fail", sender), forged), sender)).toBe(false);
 });
+
+test("baseAddress leaves addresses without a tag alone", () => {
+  expect(baseAddress("Me@Gmail.com")).toBe("me@gmail.com");
+  expect(baseAddress("me@gmail.com+x")).toBe("me@gmail.com+x");
+});
