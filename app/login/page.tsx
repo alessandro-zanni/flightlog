@@ -7,7 +7,7 @@ export const instant = false;
 
 const field = "block w-full border-2 border-ink bg-white px-3 py-2.5 text-lg";
 
-export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+export default async function LoginPage({ searchParams }: Readonly<PageProps<"/login">>) {
   const [{ error }, { t }] = await Promise.all([searchParams, getI18n()]);
   return (
     <main className="flex flex-1 flex-col">
@@ -31,7 +31,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             {t.wrongLogin}
           </p>
         )}
-        <button className="mt-2 flex items-center justify-center gap-3 bg-ink px-4 py-3.5 text-lg font-semibold text-white hover:bg-sign hover:text-ink">
+        <button type="submit" className="mt-2 flex items-center justify-center gap-3 bg-ink px-4 py-3.5 text-lg font-semibold text-white hover:bg-sign hover:text-ink">
           {t.signIn}
           <Arrow className="size-5" />
         </button>

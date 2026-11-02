@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 // Reads the session on every request: blocking on the server is fine for a personal app.
 export const instant = false;
 
-export default async function EditFlightPage({ params, searchParams }: PageProps<"/flights/[id]">) {
+export default async function EditFlightPage({ params, searchParams }: Readonly<PageProps<"/flights/[id]">>) {
   const [{ id }, { error }] = await Promise.all([params, searchParams]);
   const i18n = await getI18n();
   const { t } = i18n;
@@ -35,7 +35,7 @@ export default async function EditFlightPage({ params, searchParams }: PageProps
           <form action={deleteFlight} className="mt-4 flex flex-col items-start gap-3">
             <input type="hidden" name="id" value={flight.id} />
             <p className="text-muted">{t.deleteWarning}</p>
-            <button className="bg-alert px-4 py-2.5 font-semibold text-white hover:bg-ink">{t.deleteConfirm}</button>
+            <button type="submit" className="bg-alert px-4 py-2.5 font-semibold text-white hover:bg-ink">{t.deleteConfirm}</button>
           </form>
         </details>
       }

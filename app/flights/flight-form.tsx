@@ -103,7 +103,7 @@ export function FlightPage({
                 autoComplete="off"
               />
             </label>
-            <button className="col-span-2 mt-2 flex items-center justify-center gap-3 bg-ink px-4 py-3.5 text-lg font-semibold text-white hover:bg-sign hover:text-ink">
+            <button type="submit" className="col-span-2 mt-2 flex items-center justify-center gap-3 bg-ink px-4 py-3.5 text-lg font-semibold text-white hover:bg-sign hover:text-ink">
               {flight ? t.save : t.create}
               <Arrow className="size-5" />
             </button>

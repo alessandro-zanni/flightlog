@@ -5,7 +5,12 @@ import PostalMime from "postal-mime";
 type Env = { INBOUND_URL: string; INBOUND_SECRET: string; ALLOWED_FROM: string; FORWARD_TO: string };
 
 // Gmail auto-forwarding sends as user+caf_=...@gmail.com: compare without the +tag.
-export const baseAddress = (address: string) => address.toLowerCase().replace(/\+[^@]*@/, "@");
+export const baseAddress = (address: string) => {
+  const a = address.toLowerCase();
+  const at = a.indexOf("@");
+  const plus = a.indexOf("+");
+  return plus >= 0 && plus < at ? a.slice(0, plus) + a.slice(at) : a;
+};
 
 // Cloudflare only drops mail failing both SPF and DKIM, and a DKIM pass on any domain is enough:
 // a forged envelope sender signed by the attacker's own domain gets through. Require SPF to pass

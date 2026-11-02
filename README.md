@@ -68,5 +68,5 @@ Inoltra (a mano o con un filtro Gmail) le conferme di volo a `flights@alessandro
 ## Static analysis
 
 SonarQube in locale, istanza condivisa in `~/projects/sonarqube` (Docker, non in CI), project key
-`flightlog`: `bun run sonar` (test con copertura + scan). Copertura misurata solo su `lib/`.
+`flightlog`: `bun run sonar` (test con copertura + scan). Copertura misurata su `lib/` e `worker/`.
 Scan prima di un rilascio e dopo cambi grossi.

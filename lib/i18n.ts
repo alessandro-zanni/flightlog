@@ -35,6 +35,17 @@ const en = {
   deleteWarning: "The flight disappears from the map and the totals. This can't be undone.",
   saveFailed: "Couldn't save: check the airport codes and the date, then try again.",
   duplicate: "This flight is already in the log.",
+  search: "Search",
+  searchHint: "Airport, city or flight number",
+  year: "Year",
+  allYears: "All years",
+  allAirlines: "All airlines",
+  when: "When",
+  anyTime: "Upcoming and past",
+  past: "Past",
+  filter: "Show flights",
+  clear: "Clear filters",
+  noMatch: "No flights match these filters.",
 };
 
 const it: typeof en = {
@@ -72,6 +83,17 @@ const it: typeof en = {
   deleteWarning: "Il volo sparisce dalla mappa e dai totali. Non si può annullare.",
   saveFailed: "Salvataggio non riuscito: controlla i codici aeroporto e la data, poi riprova.",
   duplicate: "Questo volo è già nel registro.",
+  search: "Cerca",
+  searchHint: "Aeroporto, città o numero di volo",
+  year: "Anno",
+  allYears: "Tutti gli anni",
+  allAirlines: "Tutte le compagnie",
+  when: "Quando",
+  anyTime: "Prossimi e passati",
+  past: "Passati",
+  filter: "Mostra voli",
+  clear: "Azzera filtri",
+  noMatch: "Nessun volo corrisponde ai filtri.",
 };
 
 export type Locale = "en" | "it";

@@ -68,28 +68,121 @@ an itinerary, a schedule change or a cancellation. List the legs it is about.
 - Use the local departure date. Airports as 3-letter IATA codes.`;
 
 // ponytail: regex tag strip, enough for airline itineraries; use a real HTML parser if tables come out garbled
+// Drops <style>, <script> and <head> blocks in one linear pass: a lazy regex backtracks on an unclosed tag.
+function dropBlocks(html: string): string {
+  const lower = html.toLowerCase();
+  let out = "";
+  let i = 0;
+  for (const m of lower.matchAll(/<(style|script|head)[\s>]/g)) {
+    if (m.index < i) continue;
+    const close = `</${m[1]}>`;
+    const end = lower.indexOf(close, m.index);
+    if (end < 0) break;
+    out += html.slice(i, m.index) + " ";
+    i = end + close.length;
+  }
+  return out + html.slice(i);
+}
+
 export function htmlToText(html: string): string {
-  return html
-    .replace(/<(style|script|head)[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<(br|\/p|\/div|\/tr|\/li|\/h\d)[^>]*>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
+  return dropBlocks(html)
+    .replace(/<(br|\/p|\/div|\/tr|\/li|\/h\d)[^<>]*>/gi, "\n")
+    .replace(/<[^<>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/[ \t]+/g, " ")
-    .replace(/ *\n */g, "\n")
+    .replace(/ ?\n ?/g, "\n")
     .replace(/\n{2,}/g, "\n")
     .trim();
 }
 
 // Ryanair labels its HTML as text/plain: treat any HTML-looking part as HTML.
+const looksHtml = (s: string) => /(^<!DOCTYPE)|(<html[\s>])/i.test(s.slice(0, 500));
+
+export function emailHtml(email: InboundEmail): string {
+  const text = email.text?.trim() ?? "";
+  return looksHtml(text) ? text : (email.html ?? "");
+}
+
 export function emailBody(email: InboundEmail): string {
   const text = email.text?.trim() ?? "";
-  if (text && !/^<!DOCTYPE|<html[\s>]/i.test(text.slice(0, 500))) return text;
-  return htmlToText(text || email.html || "");
+  return text && !looksHtml(text) ? text : htmlToText(emailHtml(email));
 }
 
 const code = (s: string) => s.trim().toUpperCase();
+
+// schema.org FlightReservation microdata, as in Ryanair itineraries: codes and times, whatever the
+// mail's language. The model once read a Catalan itinerary backwards (issue #7); these win over it.
+type MicroLeg = { date: string; from: string; to: string; flight: string | null; airline: string; status: Leg["status"] | null };
+
+const attr = (tag: string, name: string) => new RegExp(String.raw`\s${name}=["']([^"']*)["']`, "i").exec(tag)?.[1];
+
+// itemprop -> value for one reservation. iataCode and name are keyed by the item they belong to
+// (departureAirport.iataCode): the last itemprop that opened an itemscope.
+function reservationProps(chunk: string): Map<string, string> {
+  const props = new Map<string, string>();
+  let scope = "";
+  for (const m of chunk.matchAll(/<[^<>]*\sitemprop=["']([^"']+)["'][^<>]*>/gi)) {
+    const [tag, name] = m;
+    if (/\sitemscope[\s=>]/i.test(tag)) {
+      scope = name;
+      continue;
+    }
+    const key = name === "iataCode" || name === "name" ? `${scope}.${name}` : name;
+    const text = /^[^<]*/.exec(chunk.slice(m.index + tag.length))![0];
+    if (!props.has(key)) props.set(key, (attr(tag, "content") ?? attr(tag, "href") ?? text).trim());
+  }
+  return props;
+}
+
+function microLeg(p: Map<string, string>): MicroLeg | null {
+  const date = p.get("departureTime")?.slice(0, 10) ?? "";
+  const from = code(p.get("departureAirport.iataCode") ?? "");
+  if (!date || !from) return null;
+  const number = (p.get("flightNumber") ?? "").replace(/\s+/g, "").toUpperCase();
+  const prefix = /^\d+$/.test(number) ? code(p.get("airline.iataCode") ?? "") : "";
+  const status = p.get("reservationStatus");
+  let legStatus: MicroLeg["status"] = null;
+  if (status) legStatus = /cancel/i.test(status) ? "cancelled" : "confirmed";
+  return {
+    date,
+    from,
+    to: code(p.get("arrivalAirport.iataCode") ?? ""),
+    flight: prefix + number || null,
+    airline: p.get("airline.name") ?? "",
+    status: legStatus,
+  };
+}
+
+// One reservation per passenger and leg: keep one per leg.
+export function microdataLegs(html: string): MicroLeg[] {
+  const chunks = html.split(/<[^<>]*\sitemtype=["']https?:\/\/schema\.org\/FlightReservation["'][^<>]*>/i).slice(1);
+  const legs = chunks.map((c) => microLeg(reservationProps(c))).filter((l) => l !== null);
+  return legs.filter((l, i) => legs.findIndex((o) => o.date === l.date && o.from === l.from && o.flight === l.flight) === i);
+}
+
+// Microdata legs replace the model's. The model still decides whether the mail is about Alessandro's
+// flights at all (no legs: unchanged), the PNR and completeness, and fills what the markup leaves out:
+// an empty arrival code comes from the model's leg that day, else from the next leg (round trip).
+export function applyMicrodata(ex: Extraction, html: string): Extraction {
+  const micro = microdataLegs(html);
+  if (!micro.length || !ex.legs.length) return ex;
+  const legs = micro.map((l, i): Leg => {
+    const model = ex.legs.find((m) => m.date === l.date && [code(m.from), code(m.to)].includes(l.from));
+    const modelTo = model && [code(model.from), code(model.to)].find((c) => c !== l.from);
+    return {
+      date: l.date,
+      from: l.from,
+      to: l.to || modelTo || (micro[i + 1] ?? micro[0]).from,
+      airline: model?.airline || l.airline,
+      flight: l.flight ?? model?.flight ?? null,
+      status: l.status ?? model?.status ?? "confirmed",
+      replaces: model?.replaces ?? null,
+    };
+  });
+  return { ...ex, legs };
+}
 const validRoute = (r: Route) =>
   /^\d{4}-\d{2}-\d{2}$/.test(r.date) &&
   !Number.isNaN(Date.parse(r.date)) &&
@@ -164,5 +257,5 @@ export async function extractFlights(email: InboundEmail, client = new Anthropic
   if (response.stop_reason === "max_tokens") throw new Error("Extraction cut off at max_tokens");
   const text = response.content.find((b) => b.type === "text");
   if (!text) throw new Error("Extraction returned no text");
-  return JSON.parse(text.text) as Extraction;
+  return applyMicrodata(JSON.parse(text.text) as Extraction, emailHtml(email));
 }
