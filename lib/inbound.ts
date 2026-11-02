@@ -85,7 +85,7 @@ export function htmlToText(html: string): string {
 // Ryanair labels its HTML as text/plain: treat any HTML-looking part as HTML.
 export function emailBody(email: InboundEmail): string {
   const text = email.text?.trim() ?? "";
-  if (text && !/^<!DOCTYPE|<html[\s>]/i.test(text.slice(0, 500))) return text;
+  if (text && !/(^<!DOCTYPE)|(<html[\s>])/i.test(text.slice(0, 500))) return text;
   return htmlToText(text || email.html || "");
 }
 

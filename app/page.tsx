@@ -148,7 +148,7 @@ export default async function Home() {
       )}
       <footer className="mt-auto flex justify-end bg-ink px-4 py-3">
         <form action={signOut}>
-          <button className="text-sm text-muted-dark hover:text-white">{t.signOut}</button>
+          <button type="submit" className="text-sm text-muted-dark hover:text-white">{t.signOut}</button>
         </form>
       </footer>
     </main>
