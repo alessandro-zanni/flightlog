@@ -45,12 +45,32 @@ input::placeholder {
   color: var(--color-muted);
 }
 
-/* Airport code on the globe: a small black sign plate, not the library's grey bubble. */
-.float-tooltip-kap:has(.globe-label) {
+/* Airport code on the globe: a small black sign plate, not the library's white bubble. */
+.globe-label .maplibregl-popup-tip {
+  display: none;
+}
+.globe-label .maplibregl-popup-content {
   padding: 4px 8px;
+  box-shadow: none;
   border-radius: 0;
   background: var(--color-ink);
   font: 800 1rem/1 var(--font-sans);
   letter-spacing: -0.025em;
   color: #ffffff;
+}
+
+/* Map credits as a small black sign, not the library's white rounded pill. Scoped under the map
+   because the library's stylesheet loads later, with the map chunk. */
+.maplibregl-map .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  border-radius: 0;
+  background: var(--color-ink);
+  color: var(--color-muted-dark);
+}
+.maplibregl-map .maplibregl-ctrl-attrib a {
+  color: inherit;
+}
+.maplibregl-map .maplibregl-ctrl-attrib-button {
+  border-radius: 0;
+  background-color: transparent;
+  filter: invert(1);
 }
