@@ -43,15 +43,14 @@
   italiano secondo la lingua del browser, pagina di modifica per ogni volo. La modifica usa un grant di update
   sulle sole colonne visibili all'utente: la migration va applicata su staging e prod prima del codice
   (fatto su entrambi il 2026-10-29).
-- **Mappa come globo 3D** (2026-10-29): globo WebGL con `react-globe.gl` al posto della mappa piatta, con arrivo
-  animato, rotazione sulla rotta al passaggio sulle righe, drag e zoom. La mappa SVG resta come primo render e
-  come ripiego senza WebGL. Il chunk del globo pesa circa 570 KB gzip e si carica in lazy; dettagli in `DESIGN.md`.
+- **Mappa MapLibre** (2026-11-02): MapLibre GL JS in proiezione globo, piatta (mercatore) da zoom 12, al posto
+  del globo `react-globe.gl` del 2026-10-29. Tile vettoriali gratuite CARTO Dark Matter, ricolorate con i token del
+  design; rotte come archi di cerchio massimo. Su touch la mappa si muove con due dita, così la pagina scorre.
+  Il worker di MapLibre va passato a `setWorkerUrl` (Turbopack sposta il modulo). Chunk circa 290 KB gzip più
+  il worker (circa 150 KB), in lazy. Mappa creata e distrutta in un effect: risolve anche #4 (globo vuoto dopo
+  il back con `cacheComponents`).
 - **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
-- **Da fare** (richieste del 2026-10-30, nessuna iniziata):
-  - **Mappa con MapLibre GL JS** in proiezione globo, che diventa piatta zoomando (stile Apple Maps), al posto
-    di `react-globe.gl`. Tile gratuite (es. CARTO dark). MapKit JS scartato: richiede l'Apple Developer Program
-    (99 $/anno). Motivo: su mobile il globo è piccolo e, zoomando, finisce sotto la banda gialla in alto e
-    sotto la barra in basso.
+- **Da fare** (richieste del 2026-10-30; la mappa MapLibre è fatta, sopra):
   - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
     più un'API con quota gratuita interrogata solo per i voli imminenti (il gate compare poche ore prima).
   - **Pull to refresh** nella web app installata da Safari su iPhone.
