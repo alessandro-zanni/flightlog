@@ -86,8 +86,8 @@ function dropBlocks(html: string): string {
 
 export function htmlToText(html: string): string {
   return dropBlocks(html)
-    .replace(/<(br|\/p|\/div|\/tr|\/li|\/h\d)[^>]*>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
+    .replace(/<(br|\/p|\/div|\/tr|\/li|\/h\d)[^<>]*>/gi, "\n")
+    .replace(/<[^<>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
