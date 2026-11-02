@@ -55,6 +55,8 @@
     più un'API con quota gratuita interrogata solo per i voli imminenti (il gate compare poche ore prima).
   - **Pull to refresh** nella web app installata da Safari su iPhone.
   - **Live Activities**: restano spente, niente API a pagamento.
+  - **Archi rialzati con deck.gl** (#6): `ArcLayer` sopra MapLibre, perché le rotte appoggiate sul globo non
+    danno profondità. Si tiene solo se il peso aggiunto è accettabile. Insieme, rimettere l'atmosfera (`sky`).
 
 ## Dati storici: stato (2026-10-27)
 - Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `docs/ryanair-bookings.md`.
