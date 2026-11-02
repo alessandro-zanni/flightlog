@@ -28,7 +28,7 @@
 2. **Import mail + tracking (2-3 weekend)**: Gmail read-only, estrazione LLM, worker su AeroAPI, alert via web push/Telegram.
 3. **App iOS nativa (opzionale, settimane)**: SwiftUI, Live Activities, widget, push APNs; riusa lo stesso backend.
 
-## Stato (2026-10-29)
+## Stato (2026-11-02)
 - **Fase 1 fatta**: Supabase (tabella `flights`, login con registrazione chiusa) e Vercel, prod e staging.
   Storico importato da `data/flights.json`.
 - **Fase 2 fatta, con perimetro ridotto**: solo import dalle mail, niente tracking live né AeroAPI (l'app resta
@@ -37,6 +37,10 @@
   Haiku 5.5, circa 0,001 $ a mail; modifiche e cancellazioni aggiornano la tratta originale per PNR.
   Il worker accetta solo mail con `spf=pass` per l'envelope sender nell'`Authentication-Results` scritto da
   Cloudflare: il suo filtro (SPF o DKIM, su qualsiasi dominio) lascia passare un mittente falsificato.
+  Per Ryanair le tratte vengono dal microdata schema.org `FlightReservation` della mail, prima del modello (#7,
+  2026-11-02): indipendente dalla lingua del mercato (un itinerario in catalano era stato letto al contrario).
+  Il modello decide ancora se la mail riguarda i miei voli, PNR, `complete` e `replaces`; l'aeroporto d'arrivo,
+  spesso vuoto nel microdata, si prende dall'altra tratta.
 - **Fase 3 (app iOS) scartata** (2026-10-29): l'interfaccia resta solo la web app React. Senza tracking live
   le Live Activities servono a poco e un'app nativa sarebbe una seconda interfaccia da tenere allineata.
 - **Restyling fatto (#3)**: stile segnaletica d'aeroporto (sistema in `DESIGN.md`), interfaccia in inglese e
@@ -49,14 +53,19 @@
   Il worker di MapLibre va passato a `setWorkerUrl` (Turbopack sposta il modulo). Chunk circa 290 KB gzip più
   il worker (circa 150 KB), in lazy. Mappa creata e distrutta in un effect: risolve anche #4 (globo vuoto dopo
   il back con `cacheComponents`).
-- **Prossimo lavoro**: archi rialzati con deck.gl (#6), poi recupero dei voli storici mancanti (#2).
-- **Da fare** (richieste del 2026-10-30; la mappa MapLibre è fatta, sopra):
+- **Archi rialzati con deck.gl** (#6, 2026-11-02): `ArcLayer` in un `MapboxOverlay` interleaved, sotto i punti
+  degli aeroporti, `cullMode: "none"` per il globo, atmosfera tenue con `sky`. Tenuto dopo la prova su iPhone
+  nonostante il peso: mappa da 426 a 638 KB gzip (worker compreso), sempre in lazy. Il cambio di colore al
+  passaggio sulla riga è istantaneo (le transitions di deck interpolerebbero gli archi sbagliati).
+- **Filtri dell'elenco** (#5, 2026-11-02): anno, compagnia, futuri/passati e ricerca testuale, in un form GET
+  (stato nei search params, senza JavaScript). Si applica col pulsante "Mostra voli", scelta voluta. Filtrano
+  anche mappa e numeri; la fascia "prossimo volo" no. Palette Cmd+K non fatta.
+- **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
+- **Da fare** (richieste del 2026-10-30; mappa e archi sono fatti, sopra):
   - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
     più un'API con quota gratuita interrogata solo per i voli imminenti (il gate compare poche ore prima).
   - **Pull to refresh** nella web app installata da Safari su iPhone.
   - **Live Activities**: restano spente, niente API a pagamento.
-  - **Archi rialzati con deck.gl** (#6): `ArcLayer` sopra MapLibre, perché le rotte appoggiate sul globo non
-    danno profondità. Si tiene solo se il peso aggiunto è accettabile. Insieme, rimettere l'atmosfera (`sky`).
 
 ## Dati storici: stato (2026-10-27)
 - Ryanair myRyanair: elenco prenotazioni passate, dettaglio visibile solo per le recenti. Dettagli presi da email Itinerary. Elenco in `docs/ryanair-bookings.md`.
