@@ -40,3 +40,20 @@ export function stats(list: Flight[], db: Record<string, Airport> = airports) {
     hours: Math.round(km / 800),
   };
 }
+
+export type FlightFilter = { year?: string; airline?: string; when?: string; q?: string };
+
+const squash = (s: string) => s.toLowerCase().replaceAll(/[\s-]/g, "");
+
+// Search ignores case, spaces and dashes: "blq-bcn", "BLQ BCN", "bologna", "fr 1234" all match.
+export function filterFlights<T extends Flight>(list: T[], f: FlightFilter, now: string, db = airports): T[] {
+  const q = squash(f.q ?? "");
+  return list.filter((x) => {
+    if (f.year && !x.date.startsWith(f.year)) return false;
+    if (f.airline && x.airline !== f.airline) return false;
+    if (f.when === "upcoming" && x.date < now) return false;
+    if (f.when === "past" && x.date >= now) return false;
+    const fields = [x.from + x.to, db[x.from]?.city, db[x.to]?.city, x.flight];
+    return !q || fields.some((s) => s && squash(s).includes(q));
+  });
+}
