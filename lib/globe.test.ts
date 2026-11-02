@@ -1,25 +1,25 @@
 import { expect, test } from "bun:test";
-import { viewOf } from "./globe";
+import { greatCircle } from "./globe";
 
 const BLQ = { lat: 44.5354, lon: 11.2887 };
 const BCN = { lat: 41.2971, lon: 2.0785 };
-const TFS = { lat: 28.0445, lon: -16.5725 };
 
-test("one airport sits under the camera at the closest altitude", () => {
-  const view = viewOf([BLQ]);
-  expect(view.lat).toBeCloseTo(BLQ.lat);
-  expect(view.lng).toBeCloseTo(BLQ.lon);
-  expect(view.altitude).toBeCloseTo(0.9);
+test("a route runs from origin to destination", () => {
+  const line = greatCircle(BLQ, BCN, 8);
+  expect(line).toHaveLength(9);
+  expect(line[0][0]).toBeCloseTo(BLQ.lon);
+  expect(line[0][1]).toBeCloseTo(BLQ.lat);
+  expect(line[8][0]).toBeCloseTo(BCN.lon);
+  expect(line[8][1]).toBeCloseTo(BCN.lat);
 });
 
-test("a route is framed from its midpoint, higher for longer routes", () => {
-  const short = viewOf([BLQ, BCN]);
-  expect(short.lng).toBeGreaterThan(BCN.lon);
-  expect(short.lng).toBeLessThan(BLQ.lon);
-  expect(viewOf([BLQ, TFS]).altitude).toBeGreaterThan(short.altitude);
+test("a great circle bows toward the pole, unlike the mercator straight line", () => {
+  const mid = greatCircle({ lat: 40, lon: -70 }, { lat: 40, lon: 10 }, 2)[1];
+  expect(mid[1]).toBeGreaterThan(40);
 });
 
-test("antipodal airports fall back to the first one, at the farthest altitude", () => {
-  const view = viewOf([{ lat: 10, lon: 20 }, { lat: -10, lon: -160 }]);
-  expect(view).toEqual({ lat: 10, lng: 20, altitude: 2.5 });
+test("crossing the antimeridian keeps longitudes continuous", () => {
+  const line = greatCircle({ lat: 35, lon: 170 }, { lat: 35, lon: -170 }, 8);
+  for (let i = 1; i < line.length; i++) expect(Math.abs(line[i][0] - line[i - 1][0])).toBeLessThan(10);
+  expect(line.at(-1)![0]).toBeCloseTo(190);
 });
