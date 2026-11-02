@@ -1,13 +1,15 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import { LngLatBounds, Map as MapLibre, Popup, setWorkerUrl, type ExpressionSpecification } from "maplibre-gl";
+import { ArcLayer } from "@deck.gl/layers";
+import { MapboxOverlay } from "@deck.gl/mapbox";
+import { LngLatBounds, Map as MapLibre, Popup, setWorkerUrl, type SkySpecification } from "maplibre-gl";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { greatCircle, type Point } from "@/lib/globe";
 
 // MapLibre looks for its worker next to its own module, which the bundler moves: point it at the emitted file.
 setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).href);
 
+type Point = { lat: number; lon: number };
 export type GlobeRoute = { key: string; from: Point; to: Point };
 export type GlobeAirport = Point & { code: string };
 
@@ -18,10 +20,21 @@ const CARTO_WATER = "#2C353C";
 const LAND = "#333333";
 const OCEAN = "#1a1a1a";
 
+// A faint halo around the globe, gone once zoomed into the street map; no sky colour behind it.
+const SKY: SkySpecification = {
+  "sky-color": "transparent",
+  "horizon-color": "transparent",
+  "fog-color": "transparent",
+  "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 0.35, 5, 0.35, 7, 0],
+};
+
 // Yellow only marks routes (DESIGN.md).
-const SIGN = "#ffcc00";
-const DIM = "rgba(255, 204, 0, 0.2)";
-const MUTED = "#6a6a6a";
+type RGBA = [number, number, number, number];
+const SIGN: RGBA = [255, 204, 0, 255];
+const DIM: RGBA = [255, 204, 0, 51];
+const MUTED: RGBA = [106, 106, 106, 255];
+// Arc height as a share of the route's length: long hauls climb higher.
+const ARC_HEIGHT = 0.3;
 
 const ARRIVAL_MS = 1400;
 const FLY_MS = 700;
@@ -32,14 +45,29 @@ const MAX_ZOOM = 5;
 const boundsOf = (points: Point[]) =>
   points.reduce((b, p) => b.extend([p.lon, p.lat]), new LngLatBounds());
 
-// One route lit, the rest muted (flight page) or dimmed under the pointer (list hover).
-function routePaint(lit: string | undefined, dimmed: boolean) {
-  const isLit: ExpressionSpecification = ["==", ["get", "key"], lit ?? ""];
-  return {
-    color: (lit ? ["case", isLit, SIGN, dimmed ? DIM : MUTED] : SIGN) as ExpressionSpecification | string,
-    width: ["case", isLit, 3, 1.5] as ExpressionSpecification,
-    sort: ["case", isLit, 1, 0] as ExpressionSpecification,
+// One route lit, the rest muted (flight page) or dimmed under the pointer (list hover); the lit one drawn last.
+function routeArcs(routes: GlobeRoute[], lit: string | undefined, dimmed: boolean) {
+  const color = (r: GlobeRoute) => {
+    if (!lit || r.key === lit) return SIGN;
+    return dimmed ? DIM : MUTED;
   };
+  return new ArcLayer<GlobeRoute, { beforeId: string }>({
+    id: "routes",
+    // Under the airport points, which stay MapLibre circles.
+    beforeId: "airports",
+    data: routes.toSorted((a, b) => Number(a.key === lit) - Number(b.key === lit)),
+    greatCircle: true,
+    getSourcePosition: (r) => [r.from.lon, r.from.lat],
+    getTargetPosition: (r) => [r.to.lon, r.to.lat],
+    getSourceColor: color,
+    getTargetColor: color,
+    getWidth: (r) => (r.key === lit ? 3 : 1.5),
+    getHeight: ARC_HEIGHT,
+    // MapLibre's context has no multisampling, so the arcs smooth their own edges.
+    antialiasing: true,
+    // The globe culls back faces: without this an arc vanishes when seen from its other side.
+    parameters: { cullMode: "none" },
+  });
 }
 
 export default function GlobeScene({
@@ -49,6 +77,7 @@ export default function GlobeScene({
 }: Readonly<{ routes: GlobeRoute[]; airports: GlobeAirport[]; highlight?: string }>) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibre>(undefined);
+  const overlay = useRef<MapboxOverlay>(undefined);
   const [ready, setReady] = useState(false);
   const [hovered, setHovered] = useState<string>();
   const [webgl] = useState(() => !!document.createElement("canvas").getContext("webgl2"));
@@ -69,8 +98,10 @@ export default function GlobeScene({
     const m = new MapLibre({
       container: el,
       style: STYLE,
-      transformStyle: (_, next) =>
-        JSON.parse(JSON.stringify(next).replaceAll(CARTO_LAND, LAND).replaceAll(CARTO_WATER, OCEAN)),
+      transformStyle: (_, next) => ({
+        ...JSON.parse(JSON.stringify(next).replaceAll(CARTO_LAND, LAND).replaceAll(CARTO_WATER, OCEAN)),
+        sky: SKY,
+      }),
       // The one authored moment: the whole planet first, then the part of it actually flown.
       center: [center.lng - 70, center.lat - 20],
       zoom: 1,
@@ -85,21 +116,13 @@ export default function GlobeScene({
     });
     m.touchZoomRotate.disableRotation();
     m.keyboard.disableRotation();
+    // Routes are deck.gl arcs drawn inside MapLibre's own render pass, so the globe hides the far side.
+    const arcs = new MapboxOverlay({ interleaved: true });
     map.current = m;
+    overlay.current = arcs;
 
     m.on("style.load", () => m.setProjection({ type: "globe" }));
     m.on("load", () => {
-      m.addSource("routes", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: routes.map((r) => ({
-            type: "Feature",
-            properties: { key: r.key },
-            geometry: { type: "LineString", coordinates: greatCircle(r.from, r.to) },
-          })),
-        },
-      });
       m.addSource("airports", {
         type: "geojson",
         data: {
@@ -112,18 +135,12 @@ export default function GlobeScene({
         },
       });
       m.addLayer({
-        id: "routes",
-        type: "line",
-        source: "routes",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: { "line-color": SIGN, "line-width": 1.5 },
-      });
-      m.addLayer({
         id: "airports",
         type: "circle",
         source: "airports",
         paint: { "circle-color": "#ffffff", "circle-radius": 3.5, "circle-stroke-color": "#0b0b0b", "circle-stroke-width": 1 },
       });
+      m.addControl(arcs);
 
       // Hovering an airport shows its code on a small black sign plate.
       const label = new Popup({ closeButton: false, closeOnClick: false, className: "globe-label", offset: 10 });
@@ -142,6 +159,7 @@ export default function GlobeScene({
 
     return () => {
       map.current = undefined;
+      overlay.current = undefined;
       setReady(false);
       m.remove();
     };
@@ -150,13 +168,8 @@ export default function GlobeScene({
 
   // Light the hovered or current route, the others muted or dimmed.
   useEffect(() => {
-    const m = map.current;
-    if (!ready || !m) return;
-    const p = routePaint(lit, !!hovered);
-    m.setPaintProperty("routes", "line-color", p.color);
-    m.setPaintProperty("routes", "line-width", p.width);
-    m.setLayoutProperty("routes", "line-sort-key", p.sort);
-  }, [ready, lit, hovered]);
+    if (ready) overlay.current?.setProps({ layers: [routeArcs(routes, lit, !!hovered)] });
+  }, [ready, routes, lit, hovered]);
 
   // Hovering or focusing a list row turns the globe to that route; leaving the list turns it back home.
   useEffect(() => {
