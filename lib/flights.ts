@@ -1,4 +1,5 @@
 import airportsJson from "@/data/airports.json";
+import { Constants, type Enums } from "@/lib/database.types";
 
 export type Flight = {
   id?: number;
@@ -8,17 +9,24 @@ export type Flight = {
   airline: string;
   flight?: string | null;
   pnr?: string | null;
-  checked_in?: boolean;
+  status?: FlightStatus;
 };
+export type FlightStatus = Enums<"flight_status">;
+export const FLIGHT_STATUSES = Constants.public.Enums.flight_status;
+
 export type Airport = { name: string; city: string; country: string; lat: number; lon: number };
 
 export const airports = airportsJson as Record<string, Airport>;
 
 // DB columns are origin/destination ("from"/"to" are SQL keywords); alias back to the app's shape.
-export const FLIGHT_COLUMNS = "id, date, from:origin, to:destination, airline, flight, pnr, checked_in";
+export const FLIGHT_COLUMNS = "id, date, from:origin, to:destination, airline, flight, pnr, status";
 
-// A booked flight counts in stats and on the map once it is checked in or its day has come.
-export const counts = (f: Flight, now: string) => Boolean(f.checked_in) || f.date <= now;
+// "Flown" is not stored: a booked flight counts in stats and on the map once its day comes, a checked-in one
+// at once. Missed, denied and cancelled flights stay in the list and never count.
+export const counts = (f: Flight, now: string) => f.status === "checked_in" || (active(f) && f.date <= now);
+
+// Booked or checked in: a flight that happens or happened. The others are kept on record, struck through.
+export const active = (f: Flight) => f.status === undefined || f.status === "booked" || f.status === "checked_in";
 
 const EARTH_KM = 6371;
 const rad = (d: number) => (d * Math.PI) / 180;

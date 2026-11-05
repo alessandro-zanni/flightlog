@@ -2,7 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/actions";
 import { Plane, Plate, Plus, Route, SignArrow } from "@/components/pictograms";
 import { routeKey, WorldMap } from "@/components/world-map";
-import { airports, counts, FLIGHT_COLUMNS, filterFlights, stats, type Flight, type FlightFilter } from "@/lib/flights";
+import { active, airports, counts, FLIGHT_COLUMNS, filterFlights, stats, type Flight, type FlightFilter } from "@/lib/flights";
 import { daysBetween, getI18n, today } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,7 +36,7 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
   if (error) throw new Error(error.message);
   const now = today();
   // The band always shows the real next flight; map, figures and list follow the filters.
-  const next = data.findLast((f) => f.date >= now);
+  const next = data.findLast((f) => f.date >= now && active(f));
   const flights = filterFlights(data, filter, now);
   const upcoming = flights.filter((f) => f.date >= now).reverse();
   const past = flights.filter((f) => f.date < now);
@@ -65,12 +65,12 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
         {/* Fixed columns: date, route, airline, then flight number and PNR on wider screens. */}
         <span className="text-sm text-muted">
           {date(f.date, { day: "numeric", month: "short" })}
-          {upcomingRow && (
-            <span className="block text-xs font-semibold tracking-wide text-ink uppercase">{f.checked_in ? t.checkedIn : t.booked}</span>
+          {(upcomingRow || !active(f)) && (
+            <span className="block text-xs font-semibold tracking-wide text-ink uppercase">{t[f.status ?? "booked"]}</span>
           )}
         </span>
         <span className="min-w-0">
-          <span className="block font-extrabold">
+          <span className={`block font-extrabold ${active(f) ? "" : "text-muted line-through"}`}>
             <Route from={f.from} to={f.to} sep={t.routeTo} />
           </span>
           <span className="block truncate text-sm text-muted">

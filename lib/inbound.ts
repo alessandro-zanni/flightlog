@@ -200,12 +200,25 @@ export function isCheckIn(receivedAt: string | undefined, departure: string): bo
   return days > -1 && days <= 2;
 }
 
+// Set by hand after the fact (missed the flight, denied boarding): the import never touches these rows, so a
+// rebooking mail adds the new flight and the old one stays on record.
+const manual = (r: Row) => r.status === "missed" || r.status === "denied";
+
+// The status a mail confirming this leg moves the row to, if any: checked in near departure, or back to
+// booked when the airline confirms a leg it had cancelled.
+function nextStatus(row: Row, receivedAt: string | undefined): Row["status"] | undefined {
+  if (row.status === "cancelled") return "booked";
+  if (row.status === "booked" && isCheckIn(receivedAt, row.date)) return "checked_in";
+  return undefined;
+}
+
 // Model output + the rows it may touch -> what to write. Legs that would fail the table's checks are
 // dropped, not the whole email. A complete itinerary is the booking's current state: its other legs go.
+// A cancelled leg stays on record with status cancelled.
 export function planChanges(existing: Row[], ex: Extraction, receivedAt?: string): Plan {
   const pnr = ex.pnr?.trim().toUpperCase() || null;
   // A row belongs to this booking if it has the same PNR, or no PNR at all (entered by hand).
-  const candidates = existing.filter((r) => !pnr || r.pnr === pnr || r.pnr === null);
+  const candidates = existing.filter((r) => !manual(r) && (!pnr || r.pnr === pnr || r.pnr === null));
   const plan: Plan = { insert: [], update: [], remove: [] };
   const kept = new Set<number>();
 
@@ -222,7 +235,9 @@ export function planChanges(existing: Row[], ex: Extraction, receivedAt?: string
     const current = candidates.find((r) => sameRoute(r, leg));
 
     if (leg.status === "cancelled") {
-      if (current) plan.remove.push(current.id);
+      if (!current) continue;
+      kept.add(current.id);
+      if (current.status !== "cancelled") plan.update.push({ id: current.id, values: { ...values, status: "cancelled" } });
       continue;
     }
     const replaced = leg.replaces && validRoute(leg.replaces) ? candidates.find((r) => sameRoute(r, leg.replaces!)) : undefined;
@@ -232,13 +247,14 @@ export function planChanges(existing: Row[], ex: Extraction, receivedAt?: string
       continue;
     }
     kept.add(target.id);
-    const next: TablesUpdate<"flights"> = isCheckIn(receivedAt, values.date) ? { ...values, checked_in: true } : values;
+    const status = nextStatus({ ...target, date: values.date }, receivedAt);
+    const next: TablesUpdate<"flights"> = status ? { ...values, status } : values;
     const changed = Object.entries(next).some(([k, v]) => v !== null && v !== target[k as keyof Row]);
     if (changed) plan.update.push({ id: target.id, values: next });
   }
 
   if (ex.complete && pnr) {
-    for (const r of existing) if (r.pnr === pnr && !kept.has(r.id) && !plan.remove.includes(r.id)) plan.remove.push(r.id);
+    for (const r of candidates) if (r.pnr === pnr && !kept.has(r.id)) plan.remove.push(r.id);
   }
   return plan;
 }

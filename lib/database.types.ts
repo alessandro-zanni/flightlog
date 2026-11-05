@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "flights": {
                   Row: {
-                    "airline": string,"checked_in": boolean,"created_at": string,"date": string,"destination": string,"flight": string | null,"id": number,"origin": string,"pnr": string | null
+                    "airline": string,"created_at": string,"date": string,"destination": string,"flight": string | null,"id": number,"origin": string,"pnr": string | null,"status": Database["public"]['Enums']["flight_status"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "airline": string,"checked_in"?: boolean,"created_at"?: string,"date": string,"destination": string,"flight"?: string | null,"id"?: never,"origin": string,"pnr"?: string | null
+                    "airline": string,"created_at"?: string,"date": string,"destination": string,"flight"?: string | null,"id"?: never,"origin": string,"pnr"?: string | null,"status"?: Database["public"]['Enums']["flight_status"]
                   }
                   Update: {
-                    "airline"?: string,"checked_in"?: boolean,"created_at"?: string,"date"?: string,"destination"?: string,"flight"?: string | null,"id"?: never,"origin"?: string,"pnr"?: string | null
+                    "airline"?: string,"created_at"?: string,"date"?: string,"destination"?: string,"flight"?: string | null,"id"?: never,"origin"?: string,"pnr"?: string | null,"status"?: Database["public"]['Enums']["flight_status"]
                   }
                   Relationships: [
                     
@@ -48,7 +48,7 @@ export type Database = {
                            }
           }
           Enums: {
-            [_ in never]: never
+            "flight_status": "booked"|"checked_in"|"missed"|"denied"|"cancelled"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -168,7 +168,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            
+            "flight_status": ["booked", "checked_in", "missed", "denied", "cancelled"]
           }
         }
 } as const

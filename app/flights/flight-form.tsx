@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Arrow, Plane, Plate, Route } from "@/components/pictograms";
 import { WorldMap, routeKey } from "@/components/world-map";
-import type { Flight } from "@/lib/flights";
+import { FLIGHT_STATUSES, type Flight } from "@/lib/flights";
 import type { getI18n } from "@/lib/i18n";
 
 type I18n = Awaited<ReturnType<typeof getI18n>>;
@@ -57,6 +57,12 @@ export function FlightPage({
             <label className="col-span-2">
               <span className={label}>{t.date}</span>
               <input className={field} name="date" type="date" defaultValue={flight?.date} required />
+            </label>
+            <label className="col-span-2">
+              <span className={label}>{t.status}</span>
+              <select className={field} name="status" defaultValue={flight?.status ?? "booked"}>
+                {FLIGHT_STATUSES.map((s) => <option key={s} value={s}>{t[s]}</option>)}
+              </select>
             </label>
             {(["from", "to"] as const).map((key) => (
               <label key={key}>

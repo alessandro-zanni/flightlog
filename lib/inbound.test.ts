@@ -3,8 +3,9 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { applyMicrodata, emailBody, extractFlights, htmlToText, isCheckIn, planChanges, type Extraction } from "./inbound";
 
 const row = (id: number, date: string, origin: string, destination: string, pnr: string | null, flight: string | null = null) => ({
-  id, date, origin, destination, pnr, flight, airline: "Ryanair", created_at: "", checked_in: false,
+  id, date, origin, destination, pnr, flight, airline: "Ryanair", created_at: "", status: "booked" as Row["status"],
 });
+type Row = Parameters<typeof planChanges>[0][number];
 const leg = (date: string, from: string, to: string, extra: Partial<Extraction["legs"][number]> = {}) => ({
   date, from, to, airline: "Ryanair", flight: null, status: "confirmed" as const, replaces: null, ...extra,
 });
@@ -27,10 +28,36 @@ test("new booking: legs normalized, invalid ones dropped", () => {
   });
 });
 
-test("cancellation removes only the matching leg of that booking", () => {
+test("cancellation keeps only the matching leg of that booking, marked cancelled", () => {
   const existing = [row(1, "2026-11-04", "BCN", "BLQ", "ABC123"), row(2, "2026-11-11", "BLQ", "BCN", "ABC123"), row(3, "2026-11-04", "BCN", "BLQ", "OTHER1")];
-  const plan = planChanges(existing, { pnr: "ABC123", complete: false, legs: [leg("2026-11-11", "BLQ", "BCN", { status: "cancelled" })] });
-  expect(plan).toEqual({ insert: [], update: [], remove: [2] });
+  const cancel = { pnr: "ABC123", complete: true, legs: [leg("2026-11-04", "BCN", "BLQ"), leg("2026-11-11", "BLQ", "BCN", { status: "cancelled" })] };
+  expect(planChanges(existing, cancel)).toEqual({
+    insert: [],
+    update: [{ id: 2, values: { date: "2026-11-11", origin: "BLQ", destination: "BCN", airline: "Ryanair", flight: null, pnr: "ABC123", status: "cancelled" } }],
+    remove: [],
+  });
+  // Already cancelled: nothing to do. Confirmed again later: back to booked.
+  const cancelled = [{ ...existing[1], status: "cancelled" as const }];
+  expect(planChanges(cancelled, cancel).update).toEqual([]);
+  expect(planChanges(cancelled, { pnr: "ABC123", complete: false, legs: [leg("2026-11-11", "BLQ", "BCN")] }).update).toEqual([
+    { id: 2, values: { date: "2026-11-11", origin: "BLQ", destination: "BCN", airline: "Ryanair", flight: null, pnr: "ABC123", status: "booked" } },
+  ]);
+});
+
+test("rows marked missed or denied by hand are left alone, a rebooking adds the new flight", () => {
+  const existing = [{ ...row(1, "2026-11-11", "BLQ", "BCN", "ABC123", "FR2097"), status: "denied" as const }];
+  const plan = planChanges(existing, {
+    pnr: "ABC123",
+    complete: true,
+    legs: [leg("2026-11-11", "BLQ", "BCN", { flight: "FR2099", replaces: { date: "2026-11-11", from: "BLQ", to: "BCN" } })],
+  }, "2026-11-11T09:00:00Z");
+  expect(plan).toEqual({
+    insert: [{ date: "2026-11-11", origin: "BLQ", destination: "BCN", airline: "Ryanair", flight: "FR2099", pnr: "ABC123" }],
+    update: [],
+    remove: [],
+  });
+  const missed = [{ ...existing[0], status: "missed" as const }];
+  expect(planChanges(missed, { pnr: "ABC123", complete: true, legs: [leg("2026-11-11", "BLQ", "BCN", { status: "cancelled" })] })).toEqual({ insert: [], update: [], remove: [] });
 });
 
 test("schedule change moves the original leg instead of adding a second one", () => {
@@ -82,10 +109,10 @@ test("a mail about a known leg in the last two days marks it checked in, the boo
   const ex: Extraction = { pnr: "YB6MUH", complete: true, legs: [leg("2026-11-04", "BCN", "BLQ", { flight: "FR575" }), leg("2026-11-11", "BLQ", "BCN", { flight: "FR2097" })] };
   expect(planChanges(existing, ex, "2026-11-03T17:48:39Z")).toEqual({
     insert: [],
-    update: [{ id: 1, values: { date: "2026-11-04", origin: "BCN", destination: "BLQ", airline: "Ryanair", flight: "FR575", pnr: "YB6MUH", checked_in: true } }],
+    update: [{ id: 1, values: { date: "2026-11-04", origin: "BCN", destination: "BLQ", airline: "Ryanair", flight: "FR575", pnr: "YB6MUH", status: "checked_in" } }],
     remove: [],
   });
-  expect(planChanges([{ ...existing[0], checked_in: true }], ex, "2026-11-03T17:48:39Z").update).toEqual([]);
+  expect(planChanges([{ ...existing[0], status: "checked_in" }], ex, "2026-11-03T17:48:39Z").update).toEqual([]);
 });
 
 test("htmlToText keeps table cells apart and drops styles", () => {
