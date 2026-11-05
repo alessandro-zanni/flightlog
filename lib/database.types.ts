@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "flights": {
                   Row: {
-                    "airline": string,"created_at": string,"date": string,"destination": string,"flight": string | null,"id": number,"origin": string,"pnr": string | null
+                    "airline": string,"checked_in": boolean,"created_at": string,"date": string,"destination": string,"flight": string | null,"id": number,"origin": string,"pnr": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "airline": string,"created_at"?: string,"date": string,"destination": string,"flight"?: string | null,"id"?: never,"origin": string,"pnr"?: string | null
+                    "airline": string,"checked_in"?: boolean,"created_at"?: string,"date": string,"destination": string,"flight"?: string | null,"id"?: never,"origin": string,"pnr"?: string | null
                   }
                   Update: {
-                    "airline"?: string,"created_at"?: string,"date"?: string,"destination"?: string,"flight"?: string | null,"id"?: never,"origin"?: string,"pnr"?: string | null
+                    "airline"?: string,"checked_in"?: boolean,"created_at"?: string,"date"?: string,"destination"?: string,"flight"?: string | null,"id"?: never,"origin"?: string,"pnr"?: string | null
                   }
                   Relationships: [
                     

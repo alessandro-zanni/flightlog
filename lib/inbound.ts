@@ -192,9 +192,17 @@ const validRoute = (r: Route) =>
 const sameRoute = (row: Row, r: Route) =>
   row.date === r.date && row.origin === code(r.from) && row.destination === code(r.to);
 
+// No airline mails a "checked in" notice, but Ryanair resends the itinerary at check-in. A mail about a leg
+// we already have, received from two days before departure to the day itself, marks it checked in.
+// ponytail: date heuristic, a bag bought in those two days counts too; a flight counts anyway once it departs.
+export function isCheckIn(receivedAt: string | undefined, departure: string): boolean {
+  const days = (Date.parse(departure) - Date.parse(receivedAt ?? "")) / 86_400_000;
+  return days > -1 && days <= 2;
+}
+
 // Model output + the rows it may touch -> what to write. Legs that would fail the table's checks are
 // dropped, not the whole email. A complete itinerary is the booking's current state: its other legs go.
-export function planChanges(existing: Row[], ex: Extraction): Plan {
+export function planChanges(existing: Row[], ex: Extraction, receivedAt?: string): Plan {
   const pnr = ex.pnr?.trim().toUpperCase() || null;
   // A row belongs to this booking if it has the same PNR, or no PNR at all (entered by hand).
   const candidates = existing.filter((r) => !pnr || r.pnr === pnr || r.pnr === null);
@@ -224,8 +232,9 @@ export function planChanges(existing: Row[], ex: Extraction): Plan {
       continue;
     }
     kept.add(target.id);
-    const changed = (Object.keys(values) as (keyof typeof values)[]).some((k) => values[k] !== null && values[k] !== target[k]);
-    if (changed) plan.update.push({ id: target.id, values });
+    const next: TablesUpdate<"flights"> = isCheckIn(receivedAt, values.date) ? { ...values, checked_in: true } : values;
+    const changed = Object.entries(next).some(([k, v]) => v !== null && v !== target[k as keyof Row]);
+    if (changed) plan.update.push({ id: target.id, values: next });
   }
 
   if (ex.complete && pnr) {

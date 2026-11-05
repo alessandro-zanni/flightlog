@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import type Anthropic from "@anthropic-ai/sdk";
-import { applyMicrodata, emailBody, extractFlights, htmlToText, planChanges, type Extraction } from "./inbound";
+import { applyMicrodata, emailBody, extractFlights, htmlToText, isCheckIn, planChanges, type Extraction } from "./inbound";
 
 const row = (id: number, date: string, origin: string, destination: string, pnr: string | null, flight: string | null = null) => ({
-  id, date, origin, destination, pnr, flight, airline: "Ryanair", created_at: "",
+  id, date, origin, destination, pnr, flight, airline: "Ryanair", created_at: "", checked_in: false,
 });
 const leg = (date: string, from: string, to: string, extra: Partial<Extraction["legs"][number]> = {}) => ({
   date, from, to, airline: "Ryanair", flight: null, status: "confirmed" as const, replaces: null, ...extra,
@@ -69,6 +69,23 @@ test("a leg entered by hand gets the PNR instead of a duplicate", () => {
   const plan = planChanges([row(7, "2026-11-04", "BCN", "BLQ", null)], { pnr: "ABC123", complete: true, legs: [leg("2026-11-04", "BCN", "BLQ")] });
   expect(plan.update).toEqual([{ id: 7, values: { date: "2026-11-04", origin: "BCN", destination: "BLQ", airline: "Ryanair", flight: null, pnr: "ABC123" } }]);
   expect(plan.insert).toEqual([]);
+});
+
+test("a mail about a known leg in the last two days marks it checked in, the booking mail does not", () => {
+  expect(isCheckIn("2026-11-03T17:48:39Z", "2026-11-04")).toBe(true); // YB6MUH resent at check-in
+  expect(isCheckIn("2026-10-23T18:11:39Z", "2026-11-04")).toBe(false); // the booking itself
+  expect(isCheckIn("Wed, 4 Nov 2026 05:10:00 +0100", "2026-11-04")).toBe(true); // morning of the flight
+  expect(isCheckIn("2026-11-05T08:00:00Z", "2026-11-04")).toBe(false);
+  expect(isCheckIn(undefined, "2026-11-04")).toBe(false);
+
+  const existing = [row(1, "2026-11-04", "BCN", "BLQ", "YB6MUH", "FR575"), row(2, "2026-11-11", "BLQ", "BCN", "YB6MUH", "FR2097")];
+  const ex: Extraction = { pnr: "YB6MUH", complete: true, legs: [leg("2026-11-04", "BCN", "BLQ", { flight: "FR575" }), leg("2026-11-11", "BLQ", "BCN", { flight: "FR2097" })] };
+  expect(planChanges(existing, ex, "2026-11-03T17:48:39Z")).toEqual({
+    insert: [],
+    update: [{ id: 1, values: { date: "2026-11-04", origin: "BCN", destination: "BLQ", airline: "Ryanair", flight: "FR575", pnr: "YB6MUH", checked_in: true } }],
+    remove: [],
+  });
+  expect(planChanges([{ ...existing[0], checked_in: true }], ex, "2026-11-03T17:48:39Z").update).toEqual([]);
 });
 
 test("htmlToText keeps table cells apart and drops styles", () => {

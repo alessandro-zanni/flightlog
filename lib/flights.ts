@@ -8,13 +8,17 @@ export type Flight = {
   airline: string;
   flight?: string | null;
   pnr?: string | null;
+  checked_in?: boolean;
 };
 export type Airport = { name: string; city: string; country: string; lat: number; lon: number };
 
 export const airports = airportsJson as Record<string, Airport>;
 
 // DB columns are origin/destination ("from"/"to" are SQL keywords); alias back to the app's shape.
-export const FLIGHT_COLUMNS = "id, date, from:origin, to:destination, airline, flight, pnr";
+export const FLIGHT_COLUMNS = "id, date, from:origin, to:destination, airline, flight, pnr, checked_in";
+
+// A booked flight counts in stats and on the map once it is checked in or its day has come.
+export const counts = (f: Flight, now: string) => Boolean(f.checked_in) || f.date <= now;
 
 const EARTH_KM = 6371;
 const rad = (d: number) => (d * Math.PI) / 180;
