@@ -46,6 +46,7 @@ const en = {
   filter: "Show flights",
   clear: "Clear filters",
   noMatch: "No flights match these filters.",
+  refreshing: "Refreshing",
 };
 
 const it: typeof en = {
@@ -94,6 +95,7 @@ const it: typeof en = {
   filter: "Mostra voli",
   clear: "Azzera filtri",
   noMatch: "Nessun volo corrisponde ai filtri.",
+  refreshing: "Aggiornamento",
 };
 
 export type Locale = "en" | "it";
