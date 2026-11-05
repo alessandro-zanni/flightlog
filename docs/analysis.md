@@ -60,6 +60,13 @@
 - **Filtri dell'elenco** (#5, 2026-11-02): anno, compagnia, futuri/passati e ricerca testuale, in un form GET
   (stato nei search params, senza JavaScript). Si applica col pulsante "Mostra voli", scelta voluta. Filtrano
   anche mappa e numeri; la fascia "prossimo volo" no. Palette Cmd+K non fatta.
+- **Prenotato e confermato** (2026-11-05): mappa e numeri contano un volo solo dal check-in o dal giorno del
+  volo; i prossimi voli restano nell'elenco con l'etichetta "Prenotato" o "Check-in fatto". Nessuna compagnia
+  manda una mail di check-in fatto: Ryanair rimanda lo stesso itinerario (stesso mittente, oggetto e microdata)
+  per ogni modifica, anche per il bagaglio comprato al check-in. Quindi una mail su una tratta già presente,
+  ricevuta da due giorni prima della partenza al giorno stesso, la segna `checked_in` (colonna nuova, migration
+  `flight_checked_in`). Euristica: un acquisto in quei due giorni conta come check-in, un check-in senza
+  acquisti non genera mail e il volo conta comunque dal suo giorno. Vale lo stesso per Vueling ed easyJet.
 - **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
 - **Da fare** (richieste del 2026-10-30; mappa e archi sono fatti, sopra):
   - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
