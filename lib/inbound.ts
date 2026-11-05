@@ -192,12 +192,33 @@ const validRoute = (r: Route) =>
 const sameRoute = (row: Row, r: Route) =>
   row.date === r.date && row.origin === code(r.from) && row.destination === code(r.to);
 
+// No airline mails a "checked in" notice, but Ryanair resends the itinerary at check-in. A mail about a leg
+// we already have, received from two days before departure to the day itself, marks it checked in.
+// ponytail: date heuristic, a bag bought in those two days counts too; a flight counts anyway once it departs.
+export function isCheckIn(receivedAt: string | undefined, departure: string): boolean {
+  const days = (Date.parse(departure) - Date.parse(receivedAt ?? "")) / 86_400_000;
+  return days > -1 && days <= 2;
+}
+
+// Set by hand after the fact (missed the flight, denied boarding): the import never touches these rows, so a
+// rebooking mail adds the new flight and the old one stays on record.
+const manual = (r: Row) => r.status === "missed" || r.status === "denied";
+
+// The status a mail confirming this leg moves the row to, if any: checked in near departure, or back to
+// booked when the airline confirms a leg it had cancelled.
+function nextStatus(row: Row, receivedAt: string | undefined): Row["status"] | undefined {
+  if (row.status === "cancelled") return "booked";
+  if (row.status === "booked" && isCheckIn(receivedAt, row.date)) return "checked_in";
+  return undefined;
+}
+
 // Model output + the rows it may touch -> what to write. Legs that would fail the table's checks are
 // dropped, not the whole email. A complete itinerary is the booking's current state: its other legs go.
-export function planChanges(existing: Row[], ex: Extraction): Plan {
+// A cancelled leg stays on record with status cancelled.
+export function planChanges(existing: Row[], ex: Extraction, receivedAt?: string): Plan {
   const pnr = ex.pnr?.trim().toUpperCase() || null;
   // A row belongs to this booking if it has the same PNR, or no PNR at all (entered by hand).
-  const candidates = existing.filter((r) => !pnr || r.pnr === pnr || r.pnr === null);
+  const candidates = existing.filter((r) => !manual(r) && (!pnr || r.pnr === pnr || r.pnr === null));
   const plan: Plan = { insert: [], update: [], remove: [] };
   const kept = new Set<number>();
 
@@ -214,7 +235,9 @@ export function planChanges(existing: Row[], ex: Extraction): Plan {
     const current = candidates.find((r) => sameRoute(r, leg));
 
     if (leg.status === "cancelled") {
-      if (current) plan.remove.push(current.id);
+      if (!current) continue;
+      kept.add(current.id);
+      if (current.status !== "cancelled") plan.update.push({ id: current.id, values: { ...values, status: "cancelled" } });
       continue;
     }
     const replaced = leg.replaces && validRoute(leg.replaces) ? candidates.find((r) => sameRoute(r, leg.replaces!)) : undefined;
@@ -224,12 +247,14 @@ export function planChanges(existing: Row[], ex: Extraction): Plan {
       continue;
     }
     kept.add(target.id);
-    const changed = (Object.keys(values) as (keyof typeof values)[]).some((k) => values[k] !== null && values[k] !== target[k]);
-    if (changed) plan.update.push({ id: target.id, values });
+    const status = nextStatus({ ...target, date: values.date }, receivedAt);
+    const next: TablesUpdate<"flights"> = status ? { ...values, status } : values;
+    const changed = Object.entries(next).some(([k, v]) => v !== null && v !== target[k as keyof Row]);
+    if (changed) plan.update.push({ id: target.id, values: next });
   }
 
   if (ex.complete && pnr) {
-    for (const r of existing) if (r.pnr === pnr && !kept.has(r.id) && !plan.remove.includes(r.id)) plan.remove.push(r.id);
+    for (const r of candidates) if (r.pnr === pnr && !kept.has(r.id)) plan.remove.push(r.id);
   }
   return plan;
 }

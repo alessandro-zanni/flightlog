@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { RedirectType, redirect } from "next/navigation";
+import { FLIGHT_STATUSES } from "@/lib/flights";
 import { createClient, requireUser } from "@/lib/supabase/server";
 
 // A form field as text: FormData may also hold a File, which String() would turn into "[object File]".
@@ -35,6 +36,7 @@ function flightFromForm(formData: FormData) {
     airline: field(formData, "airline").trim(),
     flight: optional("flight")?.toUpperCase() ?? null,
     pnr: optional("pnr")?.toUpperCase() ?? null,
+    status: FLIGHT_STATUSES.find((s) => s === field(formData, "status")) ?? "booked",
   };
 }
 

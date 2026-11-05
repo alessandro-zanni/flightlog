@@ -60,6 +60,19 @@
 - **Filtri dell'elenco** (#5, 2026-11-02): anno, compagnia, futuri/passati e ricerca testuale, in un form GET
   (stato nei search params, senza JavaScript). Si applica col pulsante "Mostra voli", scelta voluta. Filtrano
   anche mappa e numeri; la fascia "prossimo volo" no. Palette Cmd+K non fatta.
+- **Stato del volo** (2026-11-05): enum `flight_status` (migration `flight_status`), modificabile dalla pagina
+  del volo: Prenotato, Check-in fatto, Non partito (perso o rinunciato), Imbarco negato (overbooking), Cancellato.
+  "Volato" non è uno stato: mappa e numeri contano un volo con il check-in fatto, o prenotato il cui giorno è
+  arrivato; gli altri tre restano nell'elenco barrati e non contano mai. La fascia "prossimo volo" li salta.
+  - Check-in dall'import: nessuna compagnia manda una mail di check-in fatto. Ryanair rimanda lo stesso
+    itinerario (stesso mittente, oggetto e microdata) per ogni modifica, anche per il bagaglio comprato al
+    check-in. Quindi una mail su una tratta già presente, ricevuta da due giorni prima della partenza al giorno
+    stesso, porta Prenotato a Check-in fatto. Euristica: un acquisto in quei due giorni conta come check-in; un
+    check-in senza acquisti non genera mail, si segna a mano o il volo conta comunque dal suo giorno.
+  - Una tratta cancellata dalla mail diventa Cancellato invece di essere eliminata; riconfermata torna Prenotato.
+    Un itinerario completo che non elenca più una tratta la elimina ancora (cambio non dichiarato).
+  - Non partito e Imbarco negato si mettono solo a mano e l'import non tocca mai quelle righe: una mail di
+    riprotezione aggiunge il volo nuovo e quello vecchio resta registrato.
 - **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
 - **Da fare** (richieste del 2026-10-30; mappa e archi sono fatti, sopra):
   - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
