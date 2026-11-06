@@ -27,7 +27,7 @@ Account dedicati (`azanni-flightlog` su Vercel, org "Flightlog" su Supabase), to
 | Ramo      | Supabase (eu-central-1)                      | Vercel (fra1)                           |
 | --------- | -------------------------------------------- | --------------------------------------- |
 | `main`    | `flightlog` (`ttqhycpthnrvzjhcxysq`)         | `flightlog` → flightlog.alessandrozanni.dev |
-| `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | `flightlog-staging` → staging.flightlog.alessandrozanni.dev, dietro login Vercel |
+| `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | `flightlog-staging` → staging-flightlog.alessandrozanni.dev, dietro login Vercel |
 
 - Push su `main`/`develop` → `.github/workflows/deploy.yml` (lint, typecheck, test, deploy). Unico
   secret GitHub: `VERCEL_TOKEN`.

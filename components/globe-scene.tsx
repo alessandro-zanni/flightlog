@@ -116,6 +116,10 @@ export default function GlobeScene({
     });
     m.touchZoomRotate.disableRotation();
     m.keyboard.disableRotation();
+    // MapLibre 6 moved the transform to map._camera, deck.gl 9.4 still reads map.transform: without this every
+    // frame throws and neither arcs nor airports draw.
+    // ponytail: leans on a private field, drop it when @deck.gl/mapbox supports MapLibre 6.
+    Object.defineProperty(m, "transform", { get: () => m._camera.transform });
     // Routes are deck.gl arcs drawn inside MapLibre's own render pass, so the globe hides the far side.
     const arcs = new MapboxOverlay({ interleaved: true });
     map.current = m;

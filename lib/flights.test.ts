@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { distanceKm, filterFlights, stats } from "./flights";
+import { counts, distanceKm, filterFlights, stats } from "./flights";
 
 const db = {
   BLQ: { name: "Bologna", city: "Bologna", country: "IT", lat: 44.5354, lon: 11.2887 },
@@ -38,4 +38,10 @@ test("filterFlights combines year, airline, when and search", () => {
   expect(run({ q: "vy 6413" })).toEqual(["VY6413"]);
   expect(run({ q: "bcn", when: "past" })).toEqual(["FR 1234"]);
   expect(run({ q: "lhr" })).toEqual([]);
+});
+
+test("a flight counts once checked in or once its day comes, never if missed, denied or cancelled", () => {
+  const f = (date: string, status?: Parameters<typeof counts>[0]["status"]) => counts({ date, from: "BLQ", to: "BCN", airline: "Ryanair", status }, "2026-11-05");
+  expect([f("2026-11-04"), f("2026-11-05", "booked"), f("2026-11-06", "booked"), f("2026-11-06", "checked_in")]).toEqual([true, true, false, true]);
+  expect([f("2026-11-04", "missed"), f("2026-11-04", "denied"), f("2026-11-04", "cancelled")]).toEqual([false, false, false]);
 });

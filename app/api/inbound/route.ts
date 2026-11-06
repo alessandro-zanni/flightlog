@@ -11,7 +11,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const extraction = await extractFlights((await request.json()) as InboundEmail);
+  const email = (await request.json()) as InboundEmail;
+  const extraction = await extractFlights(email);
   if (extraction.legs.length === 0) return Response.json({ extracted: 0 });
   // The PNR ends up in a PostgREST filter string: accept only what a booking reference looks like.
   const pnr = extraction.pnr?.trim().toUpperCase() ?? "";
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
   if (existing.error) return Response.json({ error: existing.error.message }, { status: 500 });
 
   // One transaction (supabase/migrations/*_apply_flight_plan.sql): all of the plan or none of it.
-  const plan = planChanges(existing.data, extraction);
+  const plan = planChanges(existing.data, extraction, email.date);
   const { error } = await supabase.rpc("apply_flight_plan", {
     p_remove: plan.remove,
     p_update: plan.update,

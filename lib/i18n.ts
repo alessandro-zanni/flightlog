@@ -15,6 +15,12 @@ const en = {
   countries: "countries",
   airlines: "airlines",
   upcoming: "Upcoming",
+  status: "Status",
+  booked: "Booked",
+  checked_in: "Checked in",
+  missed: "Missed",
+  denied: "Denied boarding",
+  cancelled: "Cancelled",
   routeTo: "to",
   empty: "No flights yet. Forward a booking email or add one by hand.",
   back: "All flights",
@@ -46,6 +52,7 @@ const en = {
   filter: "Show flights",
   clear: "Clear filters",
   noMatch: "No flights match these filters.",
+  refreshing: "Refreshing",
 };
 
 const it: typeof en = {
@@ -63,6 +70,12 @@ const it: typeof en = {
   countries: "paesi",
   airlines: "compagnie",
   upcoming: "Prossimi voli",
+  status: "Stato",
+  booked: "Prenotato",
+  checked_in: "Check-in fatto",
+  missed: "Non partito",
+  denied: "Imbarco negato",
+  cancelled: "Cancellato",
   routeTo: "a",
   empty: "Ancora nessun volo. Inoltra una mail di prenotazione o aggiungine uno a mano.",
   back: "Tutti i voli",
@@ -94,6 +107,7 @@ const it: typeof en = {
   filter: "Mostra voli",
   clear: "Azzera filtri",
   noMatch: "Nessun volo corrisponde ai filtri.",
+  refreshing: "Aggiornamento",
 };
 
 export type Locale = "en" | "it";

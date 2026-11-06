@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import { getI18n } from "@/lib/i18n";
 import "./globals.css";
 
@@ -21,10 +22,13 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const { locale } = await getI18n();
+  const { locale, t } = await getI18n();
   return (
     <html lang={locale} className={`${hanken.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <PullToRefresh label={t.refreshing} />
+        {children}
+      </body>
     </html>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/actions";
 import { Plane, Plate, Plus, Route, SignArrow } from "@/components/pictograms";
 import { routeKey, WorldMap } from "@/components/world-map";
-import { airports, FLIGHT_COLUMNS, filterFlights, stats, type Flight, type FlightFilter } from "@/lib/flights";
+import { active, airports, counts, FLIGHT_COLUMNS, filterFlights, stats, type Flight, type FlightFilter } from "@/lib/flights";
 import { daysBetween, getI18n, today } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,13 +36,15 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
   if (error) throw new Error(error.message);
   const now = today();
   // The band always shows the real next flight; map, figures and list follow the filters.
-  const next = data.findLast((f) => f.date >= now);
+  const next = data.findLast((f) => f.date >= now && active(f));
   const flights = filterFlights(data, filter, now);
   const upcoming = flights.filter((f) => f.date >= now).reverse();
   const past = flights.filter((f) => f.date < now);
+  // Booked flights stay in the list but join figures and map only once checked in or flown.
+  const counted = flights.filter((f) => counts(f, now));
   const yearOptions = [...new Set(data.map((f) => f.date.slice(0, 4)))];
   const airlineOptions = [...new Set(data.map((f) => f.airline))].sort((a, b) => a.localeCompare(b));
-  const s = stats(flights);
+  const s = stats(counted);
   const figures: [number, string][] = [
     [s.flights, t.flights],
     [s.km, t.km],
@@ -53,7 +55,7 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
   ];
   const years = Map.groupBy(past, (f) => f.date.slice(0, 4));
 
-  const row = (f: Flight & { id: number }, withPnr: boolean) => (
+  const row = (f: Flight & { id: number }, upcomingRow: boolean) => (
     <li key={f.id}>
       <Link
         href={`/flights/${f.id}`}
@@ -61,9 +63,14 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
         className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-x-4 border-b border-rule px-4 py-3 hover:bg-sign focus-visible:bg-sign sm:grid-cols-[5rem_1fr_7rem_5rem_6rem]"
       >
         {/* Fixed columns: date, route, airline, then flight number and PNR on wider screens. */}
-        <span className="text-sm text-muted">{date(f.date, { day: "numeric", month: "short" })}</span>
+        <span className="text-sm text-muted">
+          {date(f.date, { day: "numeric", month: "short" })}
+          {(upcomingRow || !active(f)) && (
+            <span className="block text-xs font-semibold tracking-wide text-ink uppercase">{t[f.status ?? "booked"]}</span>
+          )}
+        </span>
         <span className="min-w-0">
-          <span className="block font-extrabold">
+          <span className={`block font-extrabold ${active(f) ? "" : "text-muted line-through"}`}>
             <Route from={f.from} to={f.to} sep={t.routeTo} />
           </span>
           <span className="block truncate text-sm text-muted">
@@ -72,7 +79,7 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
         </span>
         <span className="text-right text-sm sm:text-left">{f.airline}</span>
         <span className="hidden text-sm sm:block">{f.flight}</span>
-        <span className="hidden text-sm font-semibold tracking-wide sm:block">{withPnr ? f.pnr : ""}</span>
+        <span className="hidden text-sm font-semibold tracking-wide sm:block">{upcomingRow ? f.pnr : ""}</span>
       </Link>
     </li>
   );
@@ -164,7 +171,7 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
         <div className="lg:grid lg:grid-cols-2 lg:items-start">
           <section className={`lg:sticky ${next ? "lg:top-41" : "lg:top-0"}`}>
             {/* Map and figures fit under the band on a laptop screen, so the lit route stays in view. */}
-            <WorldMap flights={flights} label={t.mapLabel} className="lg:max-h-[calc(100dvh-26rem)]" />
+            <WorldMap flights={counted} label={t.mapLabel} className="lg:max-h-[calc(100dvh-26rem)]" />
             {/* A directory sign: each figure set like a gate number, its label on the same line. */}
             <dl className="grid grid-cols-2 bg-ink text-white">
               {figures.map(([value, label]) => (
