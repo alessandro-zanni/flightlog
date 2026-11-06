@@ -57,6 +57,10 @@
   degli aeroporti, `cullMode: "none"` per il globo, atmosfera tenue con `sky`. Tenuto dopo la prova su iPhone
   nonostante il peso: mappa da 426 a 638 KB gzip (worker compreso), sempre in lazy. Il cambio di colore al
   passaggio sulla riga è istantaneo (le transitions di deck interpolerebbero gli archi sbagliati).
+  Con MapLibre 6 deck.gl 9.4 non trova `map.transform` (ora in `map._camera`): `globe-scene.tsx` lo rimette
+  sull'istanza, senza non si disegnano né archi né aeroporti. Da togliere quando deck.gl supporterà MapLibre 6.
+- **Pull to refresh** (2026-11-05): attivo solo con l'app aperta dalla Home (`display-mode: standalone`), un dito
+  dalla cima della pagina, senza dipendenze nuove. Lancia `router.refresh()`; non blocca né lo scroll né la mappa.
 - **Filtri dell'elenco** (#5, 2026-11-02): anno, compagnia, futuri/passati e ricerca testuale, in un form GET
   (stato nei search params, senza JavaScript). Si applica col pulsante "Mostra voli", scelta voluta. Filtrano
   anche mappa e numeri; la fascia "prossimo volo" no. Palette Cmd+K non fatta.
@@ -77,7 +81,6 @@
 - **Da fare** (richieste del 2026-10-30; mappa e archi sono fatti, sopra):
   - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
     più un'API con quota gratuita interrogata solo per i voli imminenti (il gate compare poche ore prima).
-  - **Pull to refresh** nella web app installata da Safari su iPhone.
   - **Live Activities**: restano spente, niente API a pagamento.
 
 ## Dati storici: stato (2026-10-27)
