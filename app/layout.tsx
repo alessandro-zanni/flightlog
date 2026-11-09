@@ -15,6 +15,7 @@ export const instant = false;
 export const metadata: Metadata = {
   title: "Flightlog",
   description: "Personal flight history",
+  appleWebApp: { capable: true, title: "Flightlog", statusBarStyle: "black" },
 };
 
 export const viewport: Viewport = {

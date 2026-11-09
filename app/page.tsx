@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/actions";
 import { Plane, Plate, Plus, Route, SignArrow } from "@/components/pictograms";
 import { routeKey, WorldMap } from "@/components/world-map";
+import { refreshDepartures } from "@/lib/departure";
 import { active, airports, counts, FLIGHT_COLUMNS, filterFlights, stats, type Flight, type FlightFilter } from "@/lib/flights";
 import { daysBetween, getI18n, today } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
@@ -32,8 +33,9 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
   const filtered = Object.values(filter).some(Boolean);
   const { t, number, date, inDays } = await getI18n();
   const supabase = await createClient();
-  const { data, error } = await supabase.from("flights").select(FLIGHT_COLUMNS).order("date", { ascending: false });
+  const { data: rows, error } = await supabase.from("flights").select(FLIGHT_COLUMNS).order("date", { ascending: false });
   if (error) throw new Error(error.message);
+  const data = await refreshDepartures(supabase, rows);
   const now = today();
   // The band always shows the real next flight; map, figures and list follow the filters.
   const next = data.findLast((f) => f.date >= now && active(f));
@@ -117,7 +119,8 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
               {city(next.to)} · {date(next.date, { weekday: "short", day: "numeric", month: "short" })}
             </span>
             <span className="block text-base sm:text-lg">
-              {next.flight ?? next.airline} · <strong className="font-extrabold">{inDays(daysBetween(now, next.date))}</strong>
+              {next.flight ?? next.airline}
+              {next.gate && ` · ${t.gate} ${next.gate}`} · <strong className="font-extrabold">{inDays(daysBetween(now, next.date))}</strong>
             </span>
           </span>
           {/* The arrow is locked to the edge it points past, as on an overhead sign. */}

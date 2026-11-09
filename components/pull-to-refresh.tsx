@@ -54,7 +54,7 @@ export function PullToRefresh({ label }: Readonly<{ label: string }>) {
 
   const lit = pending || offset >= PULL_TRIGGER;
   return (
-    <div role="status" className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center">
+    <output className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center">
       {(offset > 0 || pending) && (
         <span style={{ transform: `translateY(${(pending ? PULL_TRIGGER : offset) - PLATE}px)` }}>
           {/* The arrow lights yellow once releasing will refresh, like a lit route. */}
@@ -66,6 +66,6 @@ export function PullToRefresh({ label }: Readonly<{ label: string }>) {
         </span>
       )}
       {pending && <span className="sr-only">{label}</span>}
-    </div>
+    </output>
   );
 }

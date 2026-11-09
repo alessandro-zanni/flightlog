@@ -4,6 +4,7 @@ import { applyMicrodata, emailBody, extractFlights, htmlToText, isCheckIn, planC
 
 const row = (id: number, date: string, origin: string, destination: string, pnr: string | null, flight: string | null = null) => ({
   id, date, origin, destination, pnr, flight, airline: "Ryanair", created_at: "", status: "booked" as Row["status"],
+  departure_time: null as string | null, departure_terminal: null as string | null, departure_gate: null, departure_checked_at: null,
 });
 type Row = Parameters<typeof planChanges>[0][number];
 const leg = (date: string, from: string, to: string, extra: Partial<Extraction["legs"][number]> = {}) => ({
@@ -163,7 +164,7 @@ test("Ryanair microdata wins over a model that read the Catalan itinerary backwa
   expect(ex).toEqual({
     pnr: "QZ4KTP",
     complete: true,
-    legs: [leg("2026-11-04", "BCN", "BLQ", { flight: "FR575" }), leg("2026-11-11", "BLQ", "BCN", { flight: "FR2097" })],
+    legs: [leg("2026-11-04", "BCN", "BLQ", { flight: "FR575", time: "08:20" }), leg("2026-11-11", "BLQ", "BCN", { flight: "FR2097", time: "19:00" })],
   });
   // Re-forwarding the mail fixes the wrong rows: the right legs go in, the swapped ones go.
   const plan = planChanges([row(1, "2026-11-04", "BLQ", "BCN", "QZ4KTP"), row(2, "2026-11-11", "BCN", "BLQ", "QZ4KTP")], ex);
@@ -174,10 +175,34 @@ test("Ryanair microdata wins over a model that read the Catalan itinerary backwa
   expect(plan.remove).toEqual([1, 2]);
 });
 
+test("departure time and terminal: normalized, bad ones dropped, stored ones kept when the mail has none", () => {
+  const values = (extra: Partial<Extraction["legs"][number]>) =>
+    planChanges([], { pnr: null, complete: false, legs: [leg("2026-11-04", "BCN", "BLQ", extra)] }).insert[0];
+  expect(values({ time: "08:20", terminal: "Terminal 1" })).toMatchObject({ departure_time: "08:20:00", departure_terminal: "1" });
+  expect(values({ terminal: "t2e" })).toMatchObject({ departure_terminal: "2E" });
+  // Not valid: the column would refuse it and take the whole mail down.
+  expect(values({ time: "25:00", terminal: " " })).not.toContainKeys(["departure_time", "departure_terminal"]);
+
+  const stored = { ...row(1, "2026-11-04", "BCN", "BLQ", "ABC123"), departure_time: "08:20:00", departure_terminal: "1" };
+  const again = (extra: Partial<Extraction["legs"][number]>) =>
+    planChanges([stored], { pnr: "ABC123", complete: false, legs: [leg("2026-11-04", "BCN", "BLQ", extra)] }).update;
+  expect(again({})).toEqual([]);
+  expect(again({ time: "08:20", terminal: "1" })).toEqual([]);
+  expect(again({ time: "09:00" })[0].values).toMatchObject({ departure_time: "09:00:00" });
+});
+
+test("microdata gives the time, the model the terminal it found in the text", () => {
+  const html = reservation("Alessandro Zanni", "2097", "BLQ", "2026-12-10T20:55:00");
+  const model = applyMicrodata({ pnr: null, complete: false, legs: [leg("2026-12-10", "BLQ", "BCN", { time: "21:00", terminal: "2" })] }, html);
+  expect(model.legs[0]).toMatchObject({ time: "20:55", terminal: "2" });
+  const withTerminal = html.replace(`<meta itemprop="departureTime"`, `<meta itemprop="departureTerminal" content="T1"><meta itemprop="departureTime"`);
+  expect(applyMicrodata({ pnr: null, complete: false, legs: [leg("2026-12-10", "BLQ", "BCN", { terminal: "2" })] }, withTerminal).legs[0].terminal).toBe("T1");
+});
+
 test("microdata fills an empty arrival from the model's leg that day, not from the other leg", () => {
   const html = reservation("Alessandro Zanni", "FR 9369", "BLQ", "2026-12-06T07:00:00");
   const ex = applyMicrodata({ pnr: null, complete: false, legs: [leg("2026-12-06", "MLA", "BLQ")] }, html);
-  expect(ex.legs).toEqual([leg("2026-12-06", "BLQ", "MLA", { flight: "FR9369" })]);
+  expect(ex.legs).toEqual([leg("2026-12-06", "BLQ", "MLA", { flight: "FR9369", time: "07:00" })]);
   // No legs from the model (not his flight, an offer): the markup alone adds nothing.
   expect(applyMicrodata({ pnr: null, complete: false, legs: [] }, html).legs).toEqual([]);
 });
