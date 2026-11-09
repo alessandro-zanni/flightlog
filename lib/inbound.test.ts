@@ -4,7 +4,7 @@ import { applyMicrodata, emailBody, extractFlights, htmlToText, isCheckIn, planC
 
 const row = (id: number, date: string, origin: string, destination: string, pnr: string | null, flight: string | null = null) => ({
   id, date, origin, destination, pnr, flight, airline: "Ryanair", created_at: "", status: "booked" as Row["status"],
-  departure_time: null as string | null, departure_terminal: null as string | null,
+  departure_time: null as string | null, departure_terminal: null as string | null, departure_gate: null, departure_checked_at: null,
 });
 type Row = Parameters<typeof planChanges>[0][number];
 const leg = (date: string, from: string, to: string, extra: Partial<Extraction["legs"][number]> = {}) => ({

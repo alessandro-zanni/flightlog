@@ -12,6 +12,8 @@ export type Flight = {
   status?: FlightStatus;
   time?: string | null;
   terminal?: string | null;
+  gate?: string | null;
+  checkedAt?: string | null;
 };
 export type FlightStatus = Enums<"flight_status">;
 export const FLIGHT_STATUSES = Constants.public.Enums.flight_status;
@@ -22,7 +24,7 @@ export const airports = airportsJson as Record<string, Airport>;
 
 // DB columns are origin/destination ("from"/"to" are SQL keywords); alias back to the app's shape.
 export const FLIGHT_COLUMNS =
-  "id, date, from:origin, to:destination, airline, flight, pnr, status, time:departure_time, terminal:departure_terminal";
+  "id, date, from:origin, to:destination, airline, flight, pnr, status, time:departure_time, terminal:departure_terminal, gate:departure_gate, checkedAt:departure_checked_at";
 
 // "Flown" is not stored: a booked flight counts in stats and on the map once its day comes, a checked-in one
 // at once. Missed, denied and cancelled flights stay in the list and never count.

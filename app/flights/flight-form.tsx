@@ -44,9 +44,11 @@ export function FlightPage({
           <h1 className="text-4xl leading-none font-extrabold tracking-tight sm:text-5xl">
             {flight ? <Route from={flight.from} to={flight.to} sep={t.routeTo} /> : title}
           </h1>
-          {(flight?.time || flight?.terminal) && (
+          {(flight?.time || flight?.terminal || flight?.gate) && (
             <p className="mt-2 font-semibold">
-              {[flight.time?.slice(0, 5), flight.terminal && `${t.terminal} ${flight.terminal}`].filter(Boolean).join(" · ")}
+              {[flight.time?.slice(0, 5), flight.terminal && `${t.terminal} ${flight.terminal}`, flight.gate && `${t.gate} ${flight.gate}`]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
           )}
         </div>
