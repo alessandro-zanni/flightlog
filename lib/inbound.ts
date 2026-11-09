@@ -212,6 +212,41 @@ function nextStatus(row: Row, receivedAt: string | undefined): Row["status"] | u
   return undefined;
 }
 
+const legValues = (leg: Leg, pnr: string | null) => ({
+  date: leg.date,
+  origin: code(leg.from),
+  destination: code(leg.to),
+  airline: leg.airline.trim(),
+  flight: leg.flight?.replace(/\s+/g, "").toUpperCase() || null,
+  pnr,
+});
+
+function replacedRow(candidates: Row[], leg: Leg): Row | undefined {
+  const old = leg.replaces;
+  return old && validRoute(old) ? candidates.find((r) => sameRoute(r, old)) : undefined;
+}
+
+// Adds this leg's write to the plan and returns the id of the existing row it matched, if any.
+function planLeg(plan: Plan, leg: Leg, candidates: Row[], pnr: string | null, receivedAt?: string): number | undefined {
+  const values = legValues(leg, pnr);
+  const current = candidates.find((r) => sameRoute(r, leg));
+
+  if (leg.status === "cancelled") {
+    if (current && current.status !== "cancelled") plan.update.push({ id: current.id, values: { ...values, status: "cancelled" } });
+    return current?.id;
+  }
+  const target = current ?? replacedRow(candidates, leg);
+  if (!target) {
+    plan.insert.push(values);
+    return undefined;
+  }
+  const status = nextStatus({ ...target, date: values.date }, receivedAt);
+  const next: TablesUpdate<"flights"> = status ? { ...values, status } : values;
+  const changed = Object.entries(next).some(([k, v]) => v !== null && v !== target[k as keyof Row]);
+  if (changed) plan.update.push({ id: target.id, values: next });
+  return target.id;
+}
+
 // Model output + the rows it may touch -> what to write. Legs that would fail the table's checks are
 // dropped, not the whole email. A complete itinerary is the booking's current state: its other legs go.
 // A cancelled leg stays on record with status cancelled.
@@ -224,38 +259,11 @@ export function planChanges(existing: Row[], ex: Extraction, receivedAt?: string
 
   for (const leg of ex.legs) {
     if (!validRoute(leg) || !leg.airline.trim()) continue;
-    const values = {
-      date: leg.date,
-      origin: code(leg.from),
-      destination: code(leg.to),
-      airline: leg.airline.trim(),
-      flight: leg.flight?.replace(/\s+/g, "").toUpperCase() || null,
-      pnr,
-    };
-    const current = candidates.find((r) => sameRoute(r, leg));
-
-    if (leg.status === "cancelled") {
-      if (!current) continue;
-      kept.add(current.id);
-      if (current.status !== "cancelled") plan.update.push({ id: current.id, values: { ...values, status: "cancelled" } });
-      continue;
-    }
-    const replaced = leg.replaces && validRoute(leg.replaces) ? candidates.find((r) => sameRoute(r, leg.replaces!)) : undefined;
-    const target = current ?? replaced;
-    if (!target) {
-      plan.insert.push(values);
-      continue;
-    }
-    kept.add(target.id);
-    const status = nextStatus({ ...target, date: values.date }, receivedAt);
-    const next: TablesUpdate<"flights"> = status ? { ...values, status } : values;
-    const changed = Object.entries(next).some(([k, v]) => v !== null && v !== target[k as keyof Row]);
-    if (changed) plan.update.push({ id: target.id, values: next });
+    const id = planLeg(plan, leg, candidates, pnr, receivedAt);
+    if (id !== undefined) kept.add(id);
   }
 
-  if (ex.complete && pnr) {
-    for (const r of candidates) if (r.pnr === pnr && !kept.has(r.id)) plan.remove.push(r.id);
-  }
+  if (ex.complete && pnr) plan.remove = candidates.filter((r) => r.pnr === pnr && !kept.has(r.id)).map((r) => r.id);
   return plan;
 }
 
