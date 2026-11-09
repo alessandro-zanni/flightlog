@@ -40,9 +40,16 @@ export function FlightPage({
         <Plate>
           <Plane className="size-9" />
         </Plate>
-        <h1 className="text-4xl leading-none font-extrabold tracking-tight sm:text-5xl">
-          {flight ? <Route from={flight.from} to={flight.to} sep={t.routeTo} /> : title}
-        </h1>
+        <div>
+          <h1 className="text-4xl leading-none font-extrabold tracking-tight sm:text-5xl">
+            {flight ? <Route from={flight.from} to={flight.to} sep={t.routeTo} /> : title}
+          </h1>
+          {(flight?.time || flight?.terminal) && (
+            <p className="mt-2 font-semibold">
+              {[flight.time?.slice(0, 5), flight.terminal && `${t.terminal} ${flight.terminal}`].filter(Boolean).join(" · ")}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
