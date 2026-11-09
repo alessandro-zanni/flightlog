@@ -53,6 +53,8 @@ const en = {
   clear: "Clear filters",
   noMatch: "No flights match these filters.",
   refreshing: "Refreshing",
+  terminal: "Terminal",
+  gate: "Gate",
 };
 
 const it: typeof en = {
@@ -108,6 +110,8 @@ const it: typeof en = {
   clear: "Azzera filtri",
   noMatch: "Nessun volo corrisponde ai filtri.",
   refreshing: "Aggiornamento",
+  terminal: "Terminal",
+  gate: "Gate",
 };
 
 export type Locale = "en" | "it";

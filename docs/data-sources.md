@@ -5,6 +5,11 @@
   date + route + flight number).
 - Airports: OurAirports (public domain) -> `bun scripts/build-airports.ts <airports.csv>` -> `data/airports.json`.
 - Flight emails: Google Takeout mbox -> `python3 -I scripts/mbox-flights.py <file.mbox> <out.jsonl>`.
+- Departure details: the time comes from the mails. The terminal comes from the mails where stated (easyJet, not
+  Ryanair) and from AeroDataBox (RapidAPI free plan, 400 units a month, no commercial use). The gate comes only
+  from AeroDataBox, looked up when the home page loads, for flights leaving within 6 hours, at most every 30
+  minutes, until a gate is found. Coverage varies: on 2026-11-09 BCN had a gate and terminal, BLQ had neither
+  hours before departure.
 - Approximations to replace with real data: hours use a flat 800 km/h; distances are great-circle.
 - Flighty only imports unmodified exports of OpenFlights, myFlightRadar24, App in the Air, LogMyFlight,
   JetLovers and FlightMemory. Plan: generate an OpenFlights CSV, upload it to openflights.org, import the

@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "flights": {
                   Row: {
-                    "airline": string,"created_at": string,"date": string,"destination": string,"flight": string | null,"id": number,"origin": string,"pnr": string | null,"status": Database["public"]['Enums']["flight_status"]
+                    "airline": string,"created_at": string,"date": string,"departure_checked_at": string | null,"departure_gate": string | null,"departure_terminal": string | null,"departure_time": string | null,"destination": string,"flight": string | null,"id": number,"origin": string,"pnr": string | null,"status": Database["public"]['Enums']["flight_status"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "airline": string,"created_at"?: string,"date": string,"destination": string,"flight"?: string | null,"id"?: never,"origin": string,"pnr"?: string | null,"status"?: Database["public"]['Enums']["flight_status"]
+                    "airline": string,"created_at"?: string,"date": string,"departure_checked_at"?: string | null,"departure_gate"?: string | null,"departure_terminal"?: string | null,"departure_time"?: string | null,"destination": string,"flight"?: string | null,"id"?: never,"origin": string,"pnr"?: string | null,"status"?: Database["public"]['Enums']["flight_status"]
                   }
                   Update: {
-                    "airline"?: string,"created_at"?: string,"date"?: string,"destination"?: string,"flight"?: string | null,"id"?: never,"origin"?: string,"pnr"?: string | null,"status"?: Database["public"]['Enums']["flight_status"]
+                    "airline"?: string,"created_at"?: string,"date"?: string,"departure_checked_at"?: string | null,"departure_gate"?: string | null,"departure_terminal"?: string | null,"departure_time"?: string | null,"destination"?: string,"flight"?: string | null,"id"?: never,"origin"?: string,"pnr"?: string | null,"status"?: Database["public"]['Enums']["flight_status"]
                   }
                   Relationships: [
                     

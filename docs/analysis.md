@@ -79,8 +79,8 @@
     riprotezione aggiunge il volo nuovo e quello vecchio resta registrato.
 - **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
 - **Da fare** (richieste del 2026-10-30; mappa e archi sono fatti, sopra):
-  - **Dettagli volo**: orario, giorno, terminal e gate, solo da fonti gratuite: i dati già nelle mail importate
-    più un'API con quota gratuita interrogata solo per i voli imminenti (il gate compare poche ore prima).
+  - **Dettagli volo**: fatto. Orario e terminal dalle mail, gate e terminal da AeroDataBox per i voli imminenti
+    (vedi `docs/data-sources.md`).
   - **Live Activities**: restano spente, niente API a pagamento.
 
 ## Dati storici: stato (2026-10-27)
