@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Hanken_Grotesk } from "next/font/google";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { getI18n } from "@/lib/i18n";
@@ -29,6 +31,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <PullToRefresh label={t.refreshing} />
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
