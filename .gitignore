@@ -54,3 +54,6 @@ next-env.d.ts
 
 # playwright mcp
 .playwright-mcp/
+
+# Agent worktrees created by Claude Code.
+.claude/worktrees/
