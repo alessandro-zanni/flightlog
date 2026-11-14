@@ -37,8 +37,10 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
   if (error) throw new Error(error.message);
   const data = await refreshDepartures(supabase, rows);
   const now = today();
-  // The band always shows the real next flight; map, figures and list follow the filters.
-  const next = data.findLast((f) => f.date >= now && active(f));
+  // The band shows the real next flight; map, figures and list follow the filters.
+  // The band only shows up in the week before departure, counted in calendar days like its label.
+  const nextFlight = data.findLast((f) => f.date >= now && active(f));
+  const next = nextFlight && daysBetween(now, nextFlight.date) <= 7 ? nextFlight : undefined;
   const flights = filterFlights(data, filter, now);
   const upcoming = flights.filter((f) => f.date >= now).reverse();
   const past = flights.filter((f) => f.date < now);
