@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // /api/inbound authenticates the Email Worker with its own secret, not a session.
-const PUBLIC_ROUTES = ["/login", "/api/inbound"];
+const PUBLIC_ROUTES = ["/login", "/privacy", "/api/inbound"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 const en = {
+  privacy: "Privacy",
   add: "Add flight",
   signOut: "Sign out",
   signIn: "Sign in",
@@ -41,6 +42,7 @@ const en = {
   deleteWarning: "The flight disappears from the map and the totals. This can't be undone.",
   saveFailed: "Couldn't save: check the airport codes and the date, then try again.",
   duplicate: "This flight is already in the log.",
+  filters: "Filters",
   search: "Search",
   searchHint: "Airport, city or flight number",
   year: "Year",
@@ -58,6 +60,7 @@ const en = {
 };
 
 const it: typeof en = {
+  privacy: "Privacy",
   add: "Aggiungi volo",
   signOut: "Esci",
   signIn: "Accedi",
@@ -98,6 +101,7 @@ const it: typeof en = {
   deleteWarning: "Il volo sparisce dalla mappa e dai totali. Non si può annullare.",
   saveFailed: "Salvataggio non riuscito: controlla i codici aeroporto e la data, poi riprova.",
   duplicate: "Questo volo è già nel registro.",
+  filters: "Filtri",
   search: "Cerca",
   searchHint: "Aeroporto, città o numero di volo",
   year: "Anno",
