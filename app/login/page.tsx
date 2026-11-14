@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signIn } from "@/app/actions";
 import { Arrow, Plane, Plate } from "@/components/pictograms";
 import { getI18n } from "@/lib/i18n";
@@ -35,6 +36,7 @@ export default async function LoginPage({ searchParams }: Readonly<PageProps<"/l
           {t.signIn}
           <Arrow className="size-5" />
         </button>
+        <Link href="/privacy" className="mt-4 self-center text-sm text-muted underline hover:text-ink">{t.privacy}</Link>
       </form>
     </main>
   );

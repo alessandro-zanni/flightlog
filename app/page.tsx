@@ -215,7 +215,8 @@ export default async function Home({ searchParams }: Readonly<PageProps<"/">>) {
           </section>
         </div>
       )}
-      <footer className="mt-auto flex justify-end bg-ink px-4 py-3">
+      <footer className="mt-auto flex justify-end gap-6 bg-ink px-4 py-3">
+        <Link href="/privacy" className="text-sm text-muted-dark hover:text-white">{t.privacy}</Link>
         <form action={signOut}>
           <button type="submit" className="text-sm text-muted-dark hover:text-white">{t.signOut}</button>
         </form>
