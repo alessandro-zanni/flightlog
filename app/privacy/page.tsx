@@ -8,8 +8,8 @@ export const instant = false;
 
 export const metadata: Metadata = { title: "Privacy · Flightlog" };
 
-// TODO: privacy contact address, none is set up yet.
-const CONTACT = "[TODO: privacy contact email]";
+// Kept out of the public repo: set per environment, the placeholder makes a missing value visible.
+const CONTACT = process.env.PRIVACY_CONTACT_EMAIL ?? "[PRIVACY_CONTACT_EMAIL not set]";
 const UPDATED = "2026-11-14";
 
 type Notice = { title: string; updated: string; sections: { h: string; p: string[] }[] };
