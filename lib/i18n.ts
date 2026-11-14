@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 const en = {
+  privacy: "Privacy",
   add: "Add flight",
   signOut: "Sign out",
   signIn: "Sign in",
@@ -58,6 +59,7 @@ const en = {
 };
 
 const it: typeof en = {
+  privacy: "Privacy",
   add: "Aggiungi volo",
   signOut: "Esci",
   signIn: "Accedi",
