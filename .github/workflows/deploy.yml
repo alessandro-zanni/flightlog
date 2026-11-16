@@ -1,5 +1,6 @@
 # One Vercel project (`flightlog`): main deploys to production, develop to a
-# preview aliased to the staging domain (behind Vercel login). The Vercel account
+# preview. The staging domain is a project domain bound to the `develop` branch,
+# so Vercel assigns it to every develop preview (behind Vercel login). The Vercel account
 # is dedicated and has no GitHub connection, so the deploy runs from here.
 #
 # The only secret is VERCEL_TOKEN (azanni-flightlog account → Account Settings →
@@ -43,6 +44,4 @@ jobs:
 
       - name: Deploy staging
         if: github.ref_name == 'develop'
-        run: |
-          url=$(bunx vercel@latest deploy --yes --token="$VERCEL_TOKEN")
-          bunx vercel@latest alias set "$url" staging-flightlog.alessandrozanni.dev --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
+        run: bunx vercel@latest deploy --yes --token="$VERCEL_TOKEN"
