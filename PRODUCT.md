@@ -47,6 +47,8 @@ APIs, by choice: it is a history, not a flight tracker like Flighty.
 - Interface language follows the user's browser: English and Italian, with dates and numbers formatted for
   that locale. Code and identifiers stay in English.
 - Stack: Next.js 16 App Router, React 19, Tailwind v4, Supabase; deployed on Vercel.
+- Installed as a PWA (manifest `display: standalone`, appleWebApp capable): no browser chrome, so in-app
+  back navigation and safe areas matter.
 
 ## Evidence on Hand
 
