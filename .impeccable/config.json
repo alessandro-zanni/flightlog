@@ -1,0 +1,116 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.210Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.229Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.247Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.264Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.282Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.301Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.319Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.337Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-29T13:16:32.355Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-10-29T13:26:37.730Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-10-29T13:26:37.745Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-10-29T13:26:37.760Z",
+        "reason": "Claude: throwaway decision-round sketch of an unchosen direction, gitignored, never shipped"
+      }
+    ]
+  }
+}
