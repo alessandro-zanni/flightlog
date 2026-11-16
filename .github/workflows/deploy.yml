@@ -1,6 +1,6 @@
-# main deploys to production (Vercel project `flightlog`), develop to staging
-# (`flightlog-staging`, behind Vercel login). The Vercel account is dedicated and
-# has no GitHub connection, so the deploy runs from here.
+# One Vercel project (`flightlog`): main deploys to production, develop to a
+# preview aliased to the staging domain (behind Vercel login). The Vercel account
+# is dedicated and has no GitHub connection, so the deploy runs from here.
 #
 # The only secret is VERCEL_TOKEN (azanni-flightlog account → Account Settings →
 # Tokens). Org and project ids are identifiers, not credentials.
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERCEL_ORG_ID: team_LmcxpWvsJQ1Xas1NCHAPISOw
-      VERCEL_PROJECT_ID: ${{ github.ref_name == 'main' && 'prj_jEHzvNeWmv4hRXqwOShIiZhlXl3C' || 'prj_9os6rzkLVoZarRSVaKcThgzVmYrZ' }}
+      VERCEL_PROJECT_ID: prj_jEHzvNeWmv4hRXqwOShIiZhlXl3C
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
     steps:
@@ -37,5 +37,12 @@ jobs:
 
       # Vercel blocks deploys (TEAM_ACCESS_REQUIRED) whose commit author isn't the
       # dedicated account: every commit is authored as flightlog@alessandrozanni.dev.
-      - name: Deploy
+      - name: Deploy production
+        if: github.ref_name == 'main'
         run: bunx vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
+
+      - name: Deploy staging
+        if: github.ref_name == 'develop'
+        run: |
+          url=$(bunx vercel@latest deploy --yes --token="$VERCEL_TOKEN")
+          bunx vercel@latest alias set "$url" staging-flightlog.alessandrozanni.dev --token="$VERCEL_TOKEN" --scope="$VERCEL_ORG_ID"
