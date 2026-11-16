@@ -27,10 +27,11 @@ Account dedicati (`azanni-flightlog` su Vercel, org "Flightlog" su Supabase), to
 | Ramo      | Supabase (eu-central-1)                      | Vercel (fra1)                           |
 | --------- | -------------------------------------------- | --------------------------------------- |
 | `main`    | `flightlog` (`ttqhycpthnrvzjhcxysq`)         | `flightlog` → flightlog.alessandrozanni.dev |
-| `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | `flightlog-staging` → staging-flightlog.alessandrozanni.dev, dietro login Vercel |
+| `develop` | `flightlog-staging` (`aakiprqmkshlcatajady`) | preview di `flightlog` → staging-flightlog.alessandrozanni.dev (`vercel alias set`), dietro login Vercel |
 
 - Push su `main`/`develop` → `.github/workflows/deploy.yml` (lint, typecheck, test, deploy). Unico
-  secret GitHub: `VERCEL_TOKEN`.
+  secret GitHub: `VERCEL_TOKEN`. Un solo progetto Vercel: env di staging sul target Preview,
+  protezione Standard (preview dietro login, produzione pubblica).
 - Migration: `supabase link --project-ref <ref>` + `supabase db push --linked`, prima su staging, poi
   su prod, **prima** del push del codice che le usa. Poi advisor su entrambi.
 - DNS su Cloudflare (CNAME "DNS only" + TXT `_vercel`: il dominio appartiene all'account Vercel
