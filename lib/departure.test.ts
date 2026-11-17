@@ -27,8 +27,8 @@ test("the leg leaving this airport, not another one with the same number", () =>
     { departure: { airport: { iata: "BLQ" }, gate: "A1" } },
     { departure: { airport: { iata: "BCN" }, terminal: "2", gate: "U34" } },
   ];
-  expect(departureOf(legs, "BCN")).toEqual({ terminal: "2", gate: "U34" });
-  expect(departureOf(legs, "MLA")).toEqual({ terminal: undefined, gate: undefined });
+  expect(departureOf(legs, "BCN")).toMatchObject({ terminal: "2", gate: "U34" });
+  expect(departureOf(legs, "MLA")).toMatchObject({ terminal: undefined, gate: undefined });
 });
 
 const originalFetch = globalThis.fetch;
@@ -71,4 +71,23 @@ test("no key, or no flight due: no call at all", async () => {
   expect(calls).toBe(0);
   await refreshDepartures(client, [flight()], noon);
   expect(calls).toBe(1);
+});
+
+test("the arrival comes from the same answer; a time from the mail is kept", async () => {
+  process.env.AERODATABOX_API_KEY = "k";
+  const arrival = { airport: { iata: "BLQ" }, terminal: "1", gate: "B3", scheduledTime: { local: "2026-11-09 15:50+01:00" } };
+  globalThis.fetch = (async () => Response.json([{ departure: { airport: { iata: "BCN" } }, arrival }])) as unknown as typeof fetch;
+  const { saved, client } = fakeSupabase();
+  const [f] = await refreshDepartures(client, [flight()], noon);
+  expect(f).toMatchObject({ arrivalTerminal: "1", arrivalGate: "B3", arrivalTime: "15:50:00" });
+  expect(saved[0]).toMatchObject({ arrival_terminal: "1", arrival_gate: "B3", arrival_time: "15:50:00" });
+  const [g] = await refreshDepartures(client, [flight({ arrivalTime: "15:45:00" })], noon);
+  expect(g.arrivalTime).toBe("15:45:00");
+  expect(saved[1]).not.toContainKey("arrival_time");
+});
+
+test("the departure window uses the origin's timezone", () => {
+  // 14:00 in New York is 19:00 UTC, 8 hours after noon in Rome: outside the 6-hour window.
+  expect(needsDepartureCheck(flight({ from: "JFK" }), noon)).toBe(false);
+  expect(needsDepartureCheck(flight({ from: "JFK", time: "09:00:00" }), noon)).toBe(true);
 });

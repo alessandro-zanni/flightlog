@@ -63,7 +63,14 @@
   dalla cima della pagina, senza dipendenze nuove. Lancia `router.refresh()`; non blocca né lo scroll né la mappa.
 - **Filtri dell'elenco** (#5, 2026-11-02): anno, compagnia, futuri/passati e ricerca testuale, in un form GET
   (stato nei search params, senza JavaScript). Si applica col pulsante "Mostra voli", scelta voluta. Filtrano
-  anche mappa e numeri; la fascia "prossimo volo" no. Palette Cmd+K non fatta.
+  anche mappa e numeri; la fascia "prossimo volo" no. Palette Cmd+K non fatta. Dalla 1.2.0 stanno in un
+  `<details>` chiuso di default (aperto se un filtro è attivo), così sul telefono la mappa prende il posto: lì è
+  alta `60dvh`.
+- **Fascia "prossimo volo"** (1.2.0): compare solo a 7 giorni o meno dalla partenza, in giorni di calendario
+  sul fuso di Roma come l'etichetta "tra N giorni" (`today()` e `daysBetween()` in `lib/i18n.ts`).
+- **Informativa privacy** (1.2.0): `/privacy`, pubblica (in `PUBLIC_ROUTES`), linkata da login e footer. L'email
+  di contatto viene da `PRIVACY_CONTACT_EMAIL`, impostata su entrambi i progetti Vercel (ambiente Production):
+  il repo è pubblico e l'email non deve finire nella history.
 - **Stato del volo** (2026-11-05): enum `flight_status` (migration `flight_status`), modificabile dalla pagina
   del volo: Prenotato, Check-in fatto, Non partito (perso o rinunciato), Imbarco negato (overbooking), Cancellato.
   "Volato" non è uno stato: mappa e numeri contano un volo con il check-in fatto, o prenotato il cui giorno è
@@ -80,7 +87,8 @@
 - **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
 - **Da fare** (richieste del 2026-10-30; mappa e archi sono fatti, sopra):
   - **Dettagli volo**: fatto. Orario e terminal dalle mail, gate e terminal da AeroDataBox per i voli imminenti
-    (vedi `docs/data-sources.md`).
+    (vedi `docs/data-sources.md`). Dal 2026-11-17 anche arrivo (ora, terminal, gate) e durata reale con i fusi
+    degli aeroporti; gli orari si possono inserire a mano.
   - **Live Activities**: restano spente, niente API a pagamento.
 
 ## Dati storici: stato (2026-10-27)

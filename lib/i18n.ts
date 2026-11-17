@@ -57,6 +57,8 @@ const en = {
   refreshing: "Refreshing",
   terminal: "Terminal",
   gate: "Gate",
+  departureTime: "Departure time",
+  arrivalTime: "Arrival time",
 };
 
 const it: typeof en = {
@@ -116,6 +118,8 @@ const it: typeof en = {
   refreshing: "Aggiornamento",
   terminal: "Terminal",
   gate: "Gate",
+  departureTime: "Ora di partenza",
+  arrivalTime: "Ora di arrivo",
 };
 
 export type Locale = "en" | "it";

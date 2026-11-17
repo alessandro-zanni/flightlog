@@ -1,13 +1,27 @@
 import Link from "next/link";
 import { Arrow, Plane, Plate, Route } from "@/components/pictograms";
 import { WorldMap, routeKey } from "@/components/world-map";
-import { FLIGHT_STATUSES, type Flight } from "@/lib/flights";
+import { FLIGHT_STATUSES, durationMin, type Flight } from "@/lib/flights";
 import type { getI18n } from "@/lib/i18n";
 
 type I18n = Awaited<ReturnType<typeof getI18n>>;
 
 const field = "block w-full border-2 border-ink bg-white px-3 py-2.5 text-lg";
 const label = "block text-sm font-semibold";
+
+const hm = (time?: string | null) => time?.slice(0, 5);
+
+// "08:10 → 10:25 · 2 h 15 min", then terminal and gate at each end: whatever is known.
+function details(f: Flight, t: I18n["t"]) {
+  const min = durationMin(f);
+  const times = [hm(f.time), f.arrivalTime && `→ ${hm(f.arrivalTime)}`].filter(Boolean).join(" ");
+  const end = (code: string, terminal?: string | null, gate?: string | null) =>
+    (terminal || gate) && [code, terminal && `${t.terminal} ${terminal}`, gate && `${t.gate} ${gate}`].filter(Boolean).join(" ");
+  return [
+    [times, min && `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min`].filter(Boolean).join(" · "),
+    [end(f.from, f.terminal, f.gate), end(f.to, f.arrivalTerminal, f.arrivalGate)].filter(Boolean).join(" · "),
+  ].filter(Boolean);
+}
 
 // One page shape for adding and editing: the sign band names the leg, the form sits on white below.
 export function FlightPage({
@@ -44,13 +58,11 @@ export function FlightPage({
           <h1 className="text-4xl leading-none font-extrabold tracking-tight sm:text-5xl">
             {flight ? <Route from={flight.from} to={flight.to} sep={t.routeTo} /> : title}
           </h1>
-          {(flight?.time || flight?.terminal || flight?.gate) && (
-            <p className="mt-2 font-semibold">
-              {[flight.time?.slice(0, 5), flight.terminal && `${t.terminal} ${flight.terminal}`, flight.gate && `${t.gate} ${flight.gate}`]
-                .filter(Boolean)
-                .join(" · ")}
+          {flight && details(flight, t).map((line) => (
+            <p key={line} className="mt-2 font-semibold">
+              {line}
             </p>
-          )}
+          ))}
         </div>
       </div>
 
@@ -94,6 +106,14 @@ export function FlightPage({
               <span className={label}>{t.airline}</span>
               <input className={field} name="airline" defaultValue={flight?.airline} placeholder="Ryanair" required />
             </label>
+            {(["time", "arrivalTime"] as const).map((key) => (
+              <label key={key}>
+                <span className={label}>
+                  {key === "time" ? t.departureTime : t.arrivalTime} <span className="font-normal text-muted">({t.optional})</span>
+                </span>
+                <input className={field} name={key} type="time" defaultValue={hm(flight?.[key]) ?? ""} />
+              </label>
+            ))}
             <label>
               <span className={label}>
                 {t.flightNo} <span className="font-normal text-muted">({t.optional})</span>
