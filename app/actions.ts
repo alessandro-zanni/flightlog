@@ -37,6 +37,9 @@ function flightFromForm(formData: FormData) {
     flight: optional("flight")?.toUpperCase() ?? null,
     pnr: optional("pnr")?.toUpperCase() ?? null,
     status: FLIGHT_STATUSES.find((s) => s === field(formData, "status")) ?? "booked",
+    // Cleared by hand: null, so a wrong time can be removed.
+    departure_time: optional("time"),
+    arrival_time: optional("arrivalTime"),
   };
 }
 
