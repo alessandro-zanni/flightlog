@@ -14,6 +14,9 @@ export type Flight = {
   terminal?: string | null;
   gate?: string | null;
   checkedAt?: string | null;
+  arrivalTime?: string | null;
+  arrivalTerminal?: string | null;
+  arrivalGate?: string | null;
 };
 export type FlightStatus = Enums<"flight_status">;
 export const FLIGHT_STATUSES = Constants.public.Enums.flight_status;
