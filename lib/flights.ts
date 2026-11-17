@@ -21,7 +21,7 @@ export type Flight = {
 export type FlightStatus = Enums<"flight_status">;
 export const FLIGHT_STATUSES = Constants.public.Enums.flight_status;
 
-export type Airport = { name: string; city: string; country: string; lat: number; lon: number };
+export type Airport = { name: string; city: string; country: string; lat: number; lon: number; tz?: string };
 
 export const airports = airportsJson as Record<string, Airport>;
 
@@ -46,9 +46,33 @@ export function distanceKm(a: Airport, b: Airport): number {
   return 2 * EARTH_KM * Math.asin(Math.sqrt(h));
 }
 
+// Wall clock of an instant in an IANA zone, as epoch ms read as if it were UTC.
+export const wallClock = (d: Date, tz: string) =>
+  Date.parse(`${d.toLocaleString("sv-SE", { timeZone: tz }).replace(" ", "T")}Z`);
+
+// Epoch ms of a local date and time ("2026-01-01", "08:10") in an IANA zone.
+// ponytail: one correction pass, can be 1h off right at a DST switch; iterate if that ever matters.
+export function utcOf(date: string, time: string, tz: string): number {
+  const guess = Date.parse(`${date}T${time}Z`);
+  return guess - (wallClock(new Date(guess), tz) - guess);
+}
+
+// No arrival date is stored: an arrival not after departure lands the next day (flights are under 24h).
+export function durationMin(f: Flight, db: Record<string, Airport> = airports): number | undefined {
+  const tzFrom = db[f.from]?.tz;
+  const tzTo = db[f.to]?.tz;
+  if (!f.time || !f.arrivalTime || !tzFrom || !tzTo) return undefined;
+  const dep = utcOf(f.date, f.time, tzFrom);
+  let arr = utcOf(f.date, f.arrivalTime, tzTo);
+  if (arr <= dep) arr += 24 * 3600_000;
+  return Math.round((arr - dep) / 60_000);
+}
+
 export function stats(list: Flight[], db: Record<string, Airport> = airports) {
   const known = list.filter((f) => db[f.from] && db[f.to]);
   const km = known.reduce((s, f) => s + distanceKm(db[f.from], db[f.to]), 0);
+  // ponytail: flights without a known duration still use a flat 800 km/h block speed
+  const minutes = known.reduce((s, f) => s + (durationMin(f, db) ?? (distanceKm(db[f.from], db[f.to]) / 800) * 60), 0);
   const codes = new Set(list.flatMap((f) => [f.from, f.to]));
   return {
     flights: list.length,
@@ -56,8 +80,7 @@ export function stats(list: Flight[], db: Record<string, Airport> = airports) {
     airports: codes.size,
     countries: new Set([...codes].map((c) => db[c]?.country).filter(Boolean)).size,
     airlines: new Set(list.map((f) => f.airline)).size,
-    // ponytail: flat 800 km/h block speed, replace with real durations when we store them
-    hours: Math.round(km / 800),
+    hours: Math.round(minutes / 60),
   };
 }
 
