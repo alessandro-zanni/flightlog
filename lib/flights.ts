@@ -27,7 +27,7 @@ export const airports = airportsJson as Record<string, Airport>;
 
 // DB columns are origin/destination ("from"/"to" are SQL keywords); alias back to the app's shape.
 export const FLIGHT_COLUMNS =
-  "id, date, from:origin, to:destination, airline, flight, pnr, status, time:departure_time, terminal:departure_terminal, gate:departure_gate, checkedAt:departure_checked_at";
+  "id, date, from:origin, to:destination, airline, flight, pnr, status, time:departure_time, terminal:departure_terminal, gate:departure_gate, checkedAt:departure_checked_at, arrivalTime:arrival_time, arrivalTerminal:arrival_terminal, arrivalGate:arrival_gate";
 
 // "Flown" is not stored: a booked flight counts in stats and on the map once its day comes, a checked-in one
 // at once. Missed, denied and cancelled flights stay in the list and never count.

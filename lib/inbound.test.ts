@@ -5,6 +5,7 @@ import { applyMicrodata, emailBody, extractFlights, htmlToText, isCheckIn, planC
 const row = (id: number, date: string, origin: string, destination: string, pnr: string | null, flight: string | null = null) => ({
   id, date, origin, destination, pnr, flight, airline: "Ryanair", created_at: "", status: "booked" as Row["status"],
   departure_time: null as string | null, departure_terminal: null as string | null, departure_gate: null, departure_checked_at: null,
+  arrival_time: null as string | null, arrival_terminal: null as string | null, arrival_gate: null,
 });
 type Row = Parameters<typeof planChanges>[0][number];
 const leg = (date: string, from: string, to: string, extra: Partial<Extraction["legs"][number]> = {}) => ({
@@ -205,4 +206,15 @@ test("microdata fills an empty arrival from the model's leg that day, not from t
   expect(ex.legs).toEqual([leg("2026-12-06", "BLQ", "MLA", { flight: "FR9369", time: "07:00" })]);
   // No legs from the model (not his flight, an offer): the markup alone adds nothing.
   expect(applyMicrodata({ pnr: null, complete: false, legs: [] }, html).legs).toEqual([]);
+});
+
+test("arrival time and terminal: from the model, microdata wins on the time", () => {
+  const values = planChanges([], { pnr: null, complete: false, legs: [leg("2026-11-04", "BCN", "BLQ", { arrivalTime: "10:25", arrivalTerminal: "T1" })] }).insert[0];
+  expect(values).toMatchObject({ arrival_time: "10:25:00", arrival_terminal: "1" });
+  const html = reservation("Alessandro Zanni", "2097", "BLQ", "2026-12-10T20:55:00").replace(
+    `<meta itemprop="departureTime"`,
+    `<meta itemprop="arrivalTime" content="2026-12-10T22:40:00+01:00"><meta itemprop="departureTime"`,
+  );
+  const ex = applyMicrodata({ pnr: null, complete: false, legs: [leg("2026-12-10", "BLQ", "BCN", { arrivalTime: "23:00", arrivalTerminal: "2" })] }, html);
+  expect(ex.legs[0]).toMatchObject({ time: "20:55", arrivalTime: "22:40", arrivalTerminal: "2" });
 });

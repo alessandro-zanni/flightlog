@@ -12,6 +12,8 @@ type Leg = Route & {
   replaces: Route | null;
   time?: string | null;
   terminal?: string | null;
+  arrivalTime?: string | null;
+  arrivalTerminal?: string | null;
 };
 export type Extraction = { pnr: string | null; complete: boolean; legs: Leg[] };
 
@@ -42,6 +44,8 @@ const SCHEMA = {
           flight: { type: ["string", "null"], description: "Flight number, e.g. FR1234" },
           time: { type: ["string", "null"], description: "Local departure time, HH:MM, if the email states it" },
           terminal: { type: ["string", "null"], description: "Terminal of the departure airport, e.g. 1 or 2E, if the email states it" },
+          arrivalTime: { type: ["string", "null"], description: "Local arrival time, HH:MM, if the email states it" },
+          arrivalTerminal: { type: ["string", "null"], description: "Terminal of the arrival airport, if the email states it" },
           status: { type: "string", enum: ["confirmed", "cancelled"] },
           replaces: {
             anyOf: [
@@ -51,7 +55,7 @@ const SCHEMA = {
             description: "For a changed leg: the original leg it replaces",
           },
         },
-        required: ["date", "from", "to", "airline", "flight", "time", "terminal", "status", "replaces"],
+        required: ["date", "from", "to", "airline", "flight", "time", "terminal", "arrivalTime", "arrivalTerminal", "status", "replaces"],
         additionalProperties: false,
       },
     },
@@ -70,7 +74,7 @@ an itinerary, a schedule change or a cancellation. List the legs it is about.
   a notice about one changed or cancelled leg does not).
 - Offers, abandoned carts, price alerts, newsletters, check-in reminders without the itinerary: no legs.
 - Use the local departure date. Airports as 3-letter IATA codes.
-- terminal is the one the leg departs from: a terminal named only next to the arrival airport does not count.`;
+- terminal is the one the leg departs from, arrivalTerminal the one it lands at: keep them apart.`;
 
 // ponytail: regex tag strip, enough for airline itineraries; use a real HTML parser if tables come out garbled
 // Drops <style>, <script> and <head> blocks in one linear pass: a lazy regex backtracks on an unclosed tag.
@@ -128,6 +132,8 @@ type MicroLeg = {
   status: Leg["status"] | null;
   time?: string;
   terminal?: string;
+  arrivalTime?: string;
+  arrivalTerminal?: string;
 };
 
 const attr = (tag: string, name: string) => new RegExp(String.raw`\s${name}=["']([^"']*)["']`, "i").exec(tag)?.[1];
@@ -168,6 +174,8 @@ function microLeg(p: Map<string, string>): MicroLeg | null {
     status: legStatus,
     time: p.get("departureTime")?.slice(11, 16) || undefined,
     terminal: p.get("departureTerminal") || undefined,
+    arrivalTime: p.get("arrivalTime")?.slice(11, 16) || undefined,
+    arrivalTerminal: p.get("arrivalTerminal") || undefined,
   };
 }
 
@@ -197,6 +205,8 @@ export function applyMicrodata(ex: Extraction, html: string): Extraction {
       replaces: model?.replaces ?? null,
       time: l.time ?? model?.time,
       terminal: l.terminal ?? model?.terminal,
+      arrivalTime: l.arrivalTime ?? model?.arrivalTime,
+      arrivalTerminal: l.arrivalTerminal ?? model?.arrivalTerminal,
     };
   });
   return { ...ex, legs };
@@ -232,13 +242,15 @@ function nextStatus(row: Row, receivedAt: string | undefined): Row["status"] | u
 
 // A bad time would fail the cast in apply_flight_plan and lose the whole mail, so it is dropped here.
 // The seconds match what Postgres returns for a time column, so a re-sent mail changes nothing.
-const departureTime = (time: string | null | undefined) => (/^([01]\d|2[0-3]):[0-5]\d$/.test(time?.trim() ?? "") ? `${time!.trim()}:00` : undefined);
+const clockTime = (time: string | null | undefined) => (/^([01]\d|2[0-3]):[0-5]\d$/.test(time?.trim() ?? "") ? `${time!.trim()}:00` : undefined);
 const terminalName = (terminal: string | null | undefined) => terminal?.trim().replace(/^(terminal|t)\s*/i, "").toUpperCase() || undefined;
 
-// Time and terminal are left out when the mail has none: a value already stored stays.
+// Times and terminals are left out when the mail has none: a value already stored stays.
 function legValues(leg: Leg, pnr: string | null) {
-  const time = departureTime(leg.time);
+  const time = clockTime(leg.time);
   const terminal = terminalName(leg.terminal);
+  const arrivalTime = clockTime(leg.arrivalTime);
+  const arrivalTerminal = terminalName(leg.arrivalTerminal);
   return {
     date: leg.date,
     origin: code(leg.from),
@@ -248,6 +260,8 @@ function legValues(leg: Leg, pnr: string | null) {
     pnr,
     ...(time && { departure_time: time }),
     ...(terminal && { departure_terminal: terminal }),
+    ...(arrivalTime && { arrival_time: arrivalTime }),
+    ...(arrivalTerminal && { arrival_terminal: arrivalTerminal }),
   };
 }
 
