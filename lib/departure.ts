@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
-import { active, type Flight } from "@/lib/flights";
+import { active, airports, wallClock, type Flight } from "@/lib/flights";
 
 const HOST = "aerodatabox.p.rapidapi.com";
 const WINDOW_MS = 6 * 3_600_000;
@@ -8,25 +8,29 @@ const DAY_MS = 24 * 3_600_000;
 const RECHECK_MS = 30 * 60_000;
 
 type Live = Flight & { id: number };
-type ApiFlight = { departure?: { airport?: { iata?: string }; terminal?: string; gate?: string } };
-
-const romeWallClock = (d: Date) => Date.parse(`${d.toLocaleString("sv-SE", { timeZone: "Europe/Rome" }).replace(" ", "T")}Z`);
+type ApiEnd = { airport?: { iata?: string }; terminal?: string; gate?: string; scheduledTime?: { local?: string } };
+type ApiFlight = { departure?: ApiEnd; arrival?: ApiEnd };
 
 // Each lookup spends free quota: only flights about to leave, without a gate yet, at most every half hour.
-// ponytail: departure time is local to the origin but compared with Rome time, a few hours off outside Europe;
-// store the airport timezone if that ever matters. A gate changed after the first reading is not picked up.
+// The departure time is local to the origin: compared with the wall clock there (Rome if the zone is unknown).
+// ponytail: a gate changed after the first reading is not picked up.
 export function needsDepartureCheck(f: Live, now: Date): boolean {
   if (!f.flight || !active(f) || f.gate) return false;
   if (f.checkedAt && now.getTime() - Date.parse(f.checkedAt) < RECHECK_MS) return false;
   // Without a time (added by hand), the whole day of the flight counts.
-  const left = Date.parse(`${f.date}T${f.time ?? "23:59:59"}Z`) - romeWallClock(now);
+  const left = Date.parse(`${f.date}T${f.time ?? "23:59:59"}Z`) - wallClock(now, airports[f.from]?.tz ?? "Europe/Rome");
   return left >= 0 && left <= (f.time ? WINDOW_MS : DAY_MS);
 }
 
-// A flight number can fly several legs a day: take the one leaving this airport.
+// A flight number can fly several legs a day: take the one leaving this airport. The arrival comes with the
+// same answer, so it costs no extra call; its gate is often not known yet before departure.
 export function departureOf(list: ApiFlight[], origin: string) {
-  const d = list.find((x) => x.departure?.airport?.iata === origin)?.departure;
-  return { terminal: d?.terminal, gate: d?.gate };
+  const leg = list.find((x) => x.departure?.airport?.iata === origin);
+  const d = leg?.departure;
+  const a = leg?.arrival;
+  // "2026-11-09 16:05+01:00": local time at the destination.
+  const arrivalTime = a?.scheduledTime?.local?.slice(11, 16);
+  return { terminal: d?.terminal, gate: d?.gate, arrivalTerminal: a?.terminal, arrivalGate: a?.gate, arrivalTime: arrivalTime && `${arrivalTime}:00` };
 }
 
 async function lookup(f: Live, key: string) {
@@ -52,10 +56,22 @@ export async function refreshDepartures<T extends Live>(supabase: SupabaseClient
         departure_checked_at: checkedAt,
         ...(found.gate && { departure_gate: found.gate }),
         ...(found.terminal && { departure_terminal: found.terminal }),
+        ...(found.arrivalTerminal && { arrival_terminal: found.arrivalTerminal }),
+        ...(found.arrivalGate && { arrival_gate: found.arrivalGate }),
+        // The mail's time wins: the lookup only fills a missing one.
+        ...(!f.arrivalTime && found.arrivalTime && { arrival_time: found.arrivalTime }),
       };
       const { error } = await supabase.from("flights").update(values).eq("id", f.id);
       if (error) console.error(`Departure save failed for flight ${f.id}:`, error.message);
-      return { ...f, checkedAt, gate: found.gate ?? f.gate, terminal: found.terminal ?? f.terminal };
+      return {
+        ...f,
+        checkedAt,
+        gate: found.gate ?? f.gate,
+        terminal: found.terminal ?? f.terminal,
+        arrivalTerminal: found.arrivalTerminal ?? f.arrivalTerminal,
+        arrivalGate: found.arrivalGate ?? f.arrivalGate,
+        arrivalTime: f.arrivalTime ?? found.arrivalTime,
+      };
     }),
   );
   return flights.map((f) => fresh.find((x) => x.id === f.id) ?? f);
