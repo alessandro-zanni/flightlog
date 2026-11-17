@@ -21,7 +21,7 @@ export type Flight = {
 export type FlightStatus = Enums<"flight_status">;
 export const FLIGHT_STATUSES = Constants.public.Enums.flight_status;
 
-export type Airport = { name: string; city: string; country: string; lat: number; lon: number };
+export type Airport = { name: string; city: string; country: string; lat: number; lon: number; tz?: string };
 
 export const airports = airportsJson as Record<string, Airport>;
 
