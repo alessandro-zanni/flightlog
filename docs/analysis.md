@@ -87,7 +87,8 @@
 - **Prossimo lavoro**: recupero dei voli storici mancanti (#2).
 - **Da fare** (richieste del 2026-10-30; mappa e archi sono fatti, sopra):
   - **Dettagli volo**: fatto. Orario e terminal dalle mail, gate e terminal da AeroDataBox per i voli imminenti
-    (vedi `docs/data-sources.md`).
+    (vedi `docs/data-sources.md`). Dal 2026-11-17 anche arrivo (ora, terminal, gate) e durata reale con i fusi
+    degli aeroporti; gli orari si possono inserire a mano.
   - **Live Activities**: restano spente, niente API a pagamento.
 
 ## Dati storici: stato (2026-10-27)
